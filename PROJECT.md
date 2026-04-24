@@ -1,6 +1,6 @@
 # Digital10 — Project Documentation
 
-> Last updated: 2026-04-11
+> Last updated: 2026-04-24
 > Maintained by: Romulo Telles
 
 ---
@@ -287,14 +287,49 @@ Cables & Connectors · Development Boards · Display & Output · ICs & Chips · 
 
 ---
 
-## Cloudflare DNS Records
+## Deployment
+
+Site is live at **https://digital10.ca**
+
+### Server
+- Machine: `rom@192.168.2.253` (local network)
+- App path: `/var/www/digital10/`
+- Process manager: PM2 (app name: `digital10`, port 8080)
+  ```bash
+  pm2 list                    # check status
+  pm2 logs digital10          # view logs
+  pm2 restart digital10       # restart app
+  ```
+
+### Git / Deploy Flow
+- GitHub repo: `https://github.com/romulomtelles/digital10`
+- `.env` and `orders.json` are excluded from git — manage manually on server
+- To deploy changes:
+  ```bash
+  # Local machine
+  git add . && git commit -m "your message" && git push
+
+  # Then on server
+  ssh rom@192.168.2.253
+  cd /var/www/digital10 && git pull && pm2 restart digital10
+  ```
+
+### Cloudflare Tunnel
+- Tunnel name: `medpreco` — UUID: `ab27aefc-c20a-40dd-972f-28965d578236`
+- Config on server: `/etc/cloudflared/config.yml`
+- Routes: `digital10.ca → localhost:8080`, `remedios.digital10.ca → localhost:5000`
+- SSL is handled automatically by Cloudflare — no certbot needed
+- DNS record type is "Tunnel" (not A/CNAME) in Cloudflare dashboard
+
+### Cloudflare DNS Records
 
 | Type | Purpose |
 |---|---|
+| Tunnel | `digital10.ca` → medpreco tunnel (this site) |
+| Tunnel | `remedios` → medpreco tunnel (separate app on port 5000) |
 | MX | Incoming email routing (Cloudflare Email Routing) |
 | TXT (SPF) | Authorizes Resend to send from digital10.ca |
 | TXT/CNAME (DKIM) | Cryptographic signature for outgoing emails |
-| A / CNAME | Website hosting (when deployed) |
 
 ---
 
@@ -311,10 +346,12 @@ Admin can select carrier when marking order as shipped. Tracking button in email
 
 ## Future / Pending
 
-- [ ] eSIM API integration (eSIM Access API — credentials not yet provided)
-- [ ] HTTPS / SSL certificate (required before going live with Stripe)
-- [ ] Deploy to public hosting (digital10.ca)
-- [ ] Replace email text logo with hosted image once domain is live
+- [ ] eSIM API integration (eSIM Access API — credentials in .env)
+- [x] HTTPS / SSL — handled by Cloudflare Tunnel automatically
+- [x] Deploy to public hosting — live at https://digital10.ca
+- [ ] Replace email text logo with hosted image (site is live, can now use `https://digital10.ca/images/logo/...`)
+- [ ] Update `www.digital10.ca` DNS in Cloudflare — change tunnel from `mapleedge-panel` to `medpreco`
 - [ ] Shipping label generation (Shippo API — requires customer full address at checkout)
+- [ ] Switch Stripe from test keys to live keys when ready to accept real payments
 - [ ] Stripe webhook fully configured for production
 - [ ] Convert remaining product photos from HEIC to JPEG
