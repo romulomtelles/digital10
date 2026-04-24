@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coding & Robotics with Romulo Telles | Digital10</title>
+  <meta name="description" content="Romulo Telles teaches coding and robotics to kids and young adults across Canada. Read letters from students who discovered the joy of making and programming.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    /* ── PAGE SPECIFIC ── */
+    .coding-page-hero {
+      padding: 110px 28px 60px;
+      background:
+        radial-gradient(ellipse at 60% 40%, rgba(47,128,237,0.10), transparent 55%),
+        radial-gradient(ellipse at 10% 80%, rgba(0,180,216,0.07), transparent 50%);
+    }
+    .coding-page-hero-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .romulo-photo-wrap { display: flex; justify-content: center; position: relative; }
+    .romulo-photo {
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--blue);
+      box-shadow: 0 0 60px rgba(47,128,237,0.3);
+    }
+    .romulo-photo-placeholder {
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0d2040, #0f2a50);
+      border: 4px solid var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5rem;
+      box-shadow: 0 0 60px rgba(47,128,237,0.3);
+    }
+    .romulo-badge {
+      position: absolute;
+      bottom: 12px; right: calc(50% - 150px - 20px);
+      background: var(--blue);
+      border-radius: 99px;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 20px rgba(47,128,237,0.4);
+    }
+    .bio-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 99px;
+      background: rgba(47,128,237,0.12);
+      border: 1px solid rgba(47,128,237,0.25);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--cyan);
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
+    /* What I teach */
+    .teach-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .teach-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: var(--transition);
+    }
+    .teach-card:hover { border-color: rgba(47,128,237,0.4); transform: translateY(-4px); }
+    .teach-icon { font-size: 2rem; margin-bottom: 14px; }
+    .teach-card h4 { margin-bottom: 8px; }
+    .teach-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* Testimonials full gallery */
+    .testi-full-section { padding: 80px 28px; background: var(--bg2); }
+    .testi-full-header { margin-bottom: 48px; }
+
+    /* Carousel full */
+    .full-carousel { position: relative; overflow: hidden; }
+    .full-carousel-track {
+      display: flex;
+      gap: 20px;
+      transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .full-testi-card {
+      flex: 0 0 calc(33.333% - 14px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .full-testi-card:hover { border-color: rgba(47,128,237,0.4); transform: translateY(-4px); }
+    .full-testi-img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      object-position: top center;
+      cursor: zoom-in;
+    }
+    .full-testi-label {
+      padding: 12px 16px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Full-screen lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .lightbox.open { opacity: 1; pointer-events: all; }
+    .lightbox img {
+      max-height: 90vh;
+      max-width: 90vw;
+      border-radius: 12px;
+      object-fit: contain;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.8);
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 20px; right: 20px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 1.3rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .lightbox-close:hover { background: rgba(255,255,255,0.2); }
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 1.4rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .lightbox-nav:hover { background: var(--blue); }
+    .lightbox-prev { left: 20px; }
+    .lightbox-next { right: 20px; }
+
+    /* CTA bottom */
+    .coding-cta {
+      background: linear-gradient(135deg, #0d2040, #0f2a50);
+      border: 1px solid rgba(47,128,237,0.3);
+      border-radius: var(--radius-lg);
+      padding: 60px;
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .coding-cta h2 { margin-bottom: 14px; }
+    .coding-cta p { color: var(--muted); margin-bottom: 28px; }
+
+    @media (max-width: 1024px) {
+      .coding-page-hero-inner { grid-template-columns: 1fr; }
+      .romulo-photo-wrap { justify-content: flex-start; }
+      .full-testi-card { flex: 0 0 calc(50% - 10px); }
+    }
+    @media (max-width: 640px) {
+      .full-testi-card { flex: 0 0 86%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────── -->
+<header class="nav-header">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10">
+    </a>
+    <nav class="nav-links">
+      <a href="hosting.html">Hosting</a>
+      <a href="esim.html">eSIM</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="cart-btn" id="cart-toggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Cart <span class="cart-count hidden" id="cart-count">0</span>
+      </button>
+      <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="hosting.html">🌐 Hosting</a>
+    <a href="esim.html">📶 eSIM</a>
+    <a href="shop.html">⚡ Electronics</a>
+    <a href="coding-robotics.html">🤖 Coding & Robotics</a>
+  </nav>
+</header>
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-header"><h3>🛒 Cart</h3><button class="cart-close" id="cart-close">✕</button></div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div class="cart-subtotal"><span>Subtotal</span><span class="cart-total" id="cart-total">$0.00</span></div>
+    <p class="cart-note">Taxes and shipping at checkout.</p>
+    <button class="btn btn-primary btn-full" onclick="proceedToCheckout()">Checkout →</button>
+  </div>
+</aside>
+
+<!-- ── HERO / BIO ─────────────────────────────────── -->
+<section class="coding-page-hero">
+  <div class="coding-page-hero-inner">
+    <div class="coding-bio fade-up">
+      <span class="section-label">Coding & Robotics</span>
+      <h1 style="margin-bottom:16px;">Teaching kids to<br><span class="gradient-text">build the future.</span></h1>
+      <div style="margin-bottom:18px;">
+        <span class="bio-tag">🤖 Robotics</span>
+        <span class="bio-tag">💻 Programming</span>
+        <span class="bio-tag">🇨🇦 Canada</span>
+        <span class="bio-tag">🎓 Educator</span>
+      </div>
+      <p style="color:var(--muted);margin-bottom:14px;font-size:0.95rem;">
+        Hi, I'm <strong style="color:var(--text)">Romulo Telles</strong>, a passionate coding and robotics instructor who has spent years igniting curiosity and creativity in young learners across Canada.
+      </p>
+      <p style="color:var(--muted);margin-bottom:14px;font-size:0.95rem;">
+        My classes cover everything from beginner block coding and Scratch, to Arduino programming, robot building, sensors, and servo motors. I believe every kid can be a maker; they just need the right tools and someone to show them the way.
+      </p>
+      <p style="color:var(--muted);margin-bottom:28px;font-size:0.95rem;">
+        The letters you'll see below were written voluntarily by students after our sessions. They're my greatest achievement and the reason I do this.
+      </p>
+      <a href="mailto:romulo@digital10.ca" class="btn btn-primary">Book a Class or Workshop →</a>
+    </div>
+    <div class="romulo-photo-wrap fade-up">
+      <img src="images/Romulo Perfil/IMG_3211.HEIC" alt="Romulo Telles" class="romulo-photo"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="romulo-photo-placeholder" style="display:none">🤖</div>
+      <div class="romulo-badge">🏆 5+ Years Teaching</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHAT I TEACH ──────────────────────────────── -->
+<section class="section" style="background: var(--bg2);">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Programs</span>
+      <h2>What we teach</h2>
+      <p>Hands-on, project-based learning for all ages and skill levels.</p>
+    </div>
+    <div class="teach-grid">
+      <div class="teach-card fade-up">
+        <div class="teach-icon">🧱</div>
+        <h4>Block Coding (Scratch)</h4>
+        <p>Perfect introduction to programming logic. Kids build games, animations and interactive stories. Zero prior experience needed.</p>
+      </div>
+      <div class="teach-card fade-up">
+        <div class="teach-icon">🐍</div>
+        <h4>Python Programming</h4>
+        <p>Foundational Python skills: variables, loops, functions, and intro to data. Great for students 10+ ready for text-based code.</p>
+      </div>
+      <div class="teach-card fade-up">
+        <div class="teach-icon">⚡</div>
+        <h4>Arduino & Electronics</h4>
+        <p>Hands-on microcontroller programming with sensors, LEDs, servos, and motors. Students leave with real working circuits they built themselves.</p>
+      </div>
+      <div class="teach-card fade-up">
+        <div class="teach-icon">🤖</div>
+        <h4>Robotics & Automation</h4>
+        <p>Build and program functional robots. Covers motor control, obstacle detection, remote control, and autonomous behavior.</p>
+      </div>
+      <div class="teach-card fade-up">
+        <div class="teach-icon">🌐</div>
+        <h4>Web Development Intro</h4>
+        <p>HTML, CSS, and basic JavaScript. Students publish their first webpage and understand how the internet works.</p>
+      </div>
+      <div class="teach-card fade-up">
+        <div class="teach-icon">🏕️</div>
+        <h4>Coding Camps & Workshops</h4>
+        <p>Intensive multi-day camps and in-school workshops available year-round. Custom programs for schools and community groups.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STUDENT LETTERS ───────────────────────────── -->
+<section class="testi-full-section">
+  <div class="container">
+    <div class="section-header testi-full-header">
+      <span class="section-label">Student Testimonials</span>
+      <h2>Letters from my students ✉️</h2>
+      <p>These letters were written freely by kids who attended my coding and robotics classes. Every single one is a treasure. Click any letter to zoom in.</p>
+    </div>
+
+    <!-- Carousel -->
+    <div class="full-carousel" id="full-carousel">
+      <div class="full-carousel-track" id="full-track">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <div class="carousel-controls" style="margin-top:28px;">
+      <button class="carousel-btn" id="full-prev">←</button>
+      <div class="carousel-dots" id="full-dots"></div>
+      <button class="carousel-btn" id="full-next">→</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── LIGHTBOX ───────────────────────────────────── -->
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1)">←</button>
+  <img id="lightbox-img" src="" alt="Student letter">
+  <button class="lightbox-nav lightbox-next" onclick="lightboxNav(1)">→</button>
+</div>
+
+<!-- ── CONTACT / CTA ─────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="coding-cta fade-up">
+      <div style="font-size:3rem;margin-bottom:20px;">🚀</div>
+      <h2>Bring coding & robotics<br>to your school or event</h2>
+      <p>I offer in-school workshops, after-school programs, birthday parties, and summer camps. All materials and kits provided. Suitable for ages 6–18.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+        <a href="mailto:romulo@digital10.ca?subject=Coding Workshop Inquiry" class="btn btn-primary">📩 Get in Touch</a>
+        <a href="shop.html?cat=Starter+Kits" class="btn btn-outline">⚡ Shop Kits for Home</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10" class="footer-logo">
+      <p>Teaching coding and robotics, and powering makers with hosting, eSIM and electronics across Canada.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="hosting.html">Web Hosting</a>
+      <a href="esim.html">eSIM Plans</a>
+      <a href="shop.html">Electronics Shop</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </div>
+    <div class="footer-col">
+      <h4>Programs</h4>
+      <a href="coding-robotics.html">Arduino & Electronics</a>
+      <a href="coding-robotics.html">Robotics</a>
+      <a href="coding-robotics.html">Python</a>
+      <a href="coding-robotics.html">Scratch / Block Code</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <a href="mailto:romulo@digital10.ca">romulo@digital10.ca</a>
+      <a href="mailto:info@digital10.ca">info@digital10.ca</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Digital10 · Romulo Telles. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+// All 16 student letter images
+const LETTERS = Array.from({length: 16}, (_, i) =>
+  `images/kids testimonials/rom1${i === 0 ? '' : ' ' + (i + 1)}.png`
+);
+// Reorder: rom1.png = index 0 (file name "rom1.png"), then "rom1 2.png" etc.
+// Files: rom1.png, rom1 2.png, rom1 3.png, ... rom1 15.png
+const LETTER_PATHS = [
+  'images/kids testimonials/rom1.png',
+  ...Array.from({length: 15}, (_, i) => `images/kids testimonials/rom1 ${i+2}.png`)
+];
+
+let currentSlide = 0;
+let lightboxIdx = 0;
+
+function buildCarousel() {
+  const track = document.getElementById('full-track');
+  const dotsEl = document.getElementById('full-dots');
+  if (!track) return;
+
+  track.innerHTML = LETTER_PATHS.map((src, i) => `
+    <div class="full-testi-card">
+      <img class="full-testi-img" src="${src}" alt="Letter from a student ${i+1}"
+           onclick="openLightbox(${i})"
+           onerror="this.closest('.full-testi-card').style.display='none'">
+      <div class="full-testi-label">✉️ Student letter | Romulo Telles Coding & Robotics</div>
+    </div>
+  `).join('');
+
+  // Dots: one per group of 3
+  const groups = Math.ceil(LETTER_PATHS.length / 3);
+  dotsEl.innerHTML = Array.from({length: groups}, (_, i) =>
+    `<button class="dot ${i===0?'active':''}" onclick="goFull(${i*3})"></button>`
+  ).join('');
+
+  document.getElementById('full-prev')?.addEventListener('click', () => {
+    goFull(currentSlide - 1);
+  });
+  document.getElementById('full-next')?.addEventListener('click', () => {
+    goFull(currentSlide + 1);
+  });
+}
+
+function goFull(idx) {
+  const track = document.getElementById('full-track');
+  const cards = track?.querySelectorAll('.full-testi-card');
+  const visible = cards ? [...cards].filter(c => c.style.display !== 'none') : [];
+  const total = visible.length;
+  if (total === 0) return;
+
+  const visCount = window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3;
+  currentSlide = Math.max(0, Math.min(idx, total - visCount));
+  const w = (visible[0]?.offsetWidth || 300) + 20;
+  track.style.transform = `translateX(-${currentSlide * w}px)`;
+
+  const dots = document.querySelectorAll('#full-dots .dot');
+  dots.forEach((d, i) => d.classList.toggle('active', i === Math.floor(currentSlide / visCount)));
+}
+
+// Lightbox
+function openLightbox(idx) {
+  lightboxIdx = idx;
+  document.getElementById('lightbox-img').src = LETTER_PATHS[lightboxIdx];
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function lightboxNav(dir) {
+  lightboxIdx = (lightboxIdx + dir + LETTER_PATHS.length) % LETTER_PATHS.length;
+  document.getElementById('lightbox-img').src = LETTER_PATHS[lightboxIdx];
+}
+
+window.openLightbox = openLightbox;
+window.closeLightbox = closeLightbox;
+window.lightboxNav = lightboxNav;
+window.goFull = goFull;
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildCarousel();
+  // Auto-play
+  setInterval(() => goFull(currentSlide + 1), 5000);
+});
+
+// Keyboard lightbox nav
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox')?.classList.contains('open')) {
+    if (e.key === 'ArrowRight') lightboxNav(1);
+    if (e.key === 'ArrowLeft')  lightboxNav(-1);
+    if (e.key === 'Escape')     closeLightbox();
+  }
+});
+</script>
+</body>
+</html>

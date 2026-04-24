@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Hosting Plans | Digital10</title>
+  <meta name="description" content="Affordable, fast, and beginner-friendly web hosting from Digital10. SSD storage, free SSL, and 99.9% uptime across all plans.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    .hosting-hero {
+      background: radial-gradient(ellipse at 30% 50%, rgba(47,128,237,0.12), transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(0,180,216,0.07), transparent 50%);
+      padding: 110px 28px 70px;
+      text-align: center;
+    }
+    .hosting-hero h1 { margin-bottom: 16px; }
+    .hosting-hero p { color: var(--muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto 40px; }
+
+    .toggle-wrap {
+      display: inline-flex;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 64px;
+    }
+    .toggle-btn {
+      padding: 8px 22px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: var(--transition);
+      color: var(--muted);
+    }
+    .toggle-btn.active { background: var(--blue); color: #fff; }
+    .save-badge {
+      background: rgba(34,197,94,0.15);
+      color: var(--green);
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .plans-section { padding: 0 28px 100px; }
+    .plans-section .container { max-width: 1100px; }
+
+    /* Add-ons */
+    .addons-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 80px 28px;
+    }
+    .addons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      max-width: 1100px;
+      margin: 40px auto 0;
+    }
+    .addon-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: var(--transition);
+    }
+    .addon-card:hover { border-color: rgba(47,128,237,0.4); transform: translateY(-3px); }
+    .addon-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .addon-card h4 { margin-bottom: 6px; }
+    .addon-card p { font-size: 0.82rem; color: var(--muted); margin-bottom: 12px; }
+    .addon-price { color: var(--blue); font-weight: 700; font-size: 0.9rem; }
+
+    /* FAQ */
+    .faq-section { padding: 80px 28px; }
+    .faq-list { max-width: 720px; margin: 40px auto 0; display: flex; flex-direction: column; gap: 12px; }
+    .faq-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .faq-q {
+      padding: 18px 20px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .faq-q::after { content: '↓'; transition: var(--transition); }
+    .faq-item.open .faq-q::after { transform: rotate(180deg); }
+    .faq-a { display: none; padding: 0 20px 18px; color: var(--muted); font-size: 0.88rem; line-height: 1.65; }
+    .faq-item.open .faq-a { display: block; }
+
+    @media (max-width: 768px) {
+      .pricing-grid { grid-template-columns: 1fr; max-width: 380px; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────── -->
+<header class="nav-header">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10">
+    </a>
+    <nav class="nav-links">
+      <a href="hosting.html">Hosting</a>
+      <a href="esim.html">eSIM</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="cart-btn" id="cart-toggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Cart <span class="cart-count hidden" id="cart-count">0</span>
+      </button>
+      <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="hosting.html">🌐 Hosting</a>
+    <a href="esim.html">📶 eSIM</a>
+    <a href="shop.html">⚡ Electronics</a>
+    <a href="coding-robotics.html">🤖 Coding & Robotics</a>
+  </nav>
+</header>
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-header"><h3>🛒 Cart</h3><button class="cart-close" id="cart-close">✕</button></div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div class="cart-subtotal"><span>Subtotal</span><span class="cart-total" id="cart-total">$0.00</span></div>
+    <p class="cart-note">Taxes and shipping calculated at checkout.</p>
+    <button class="btn btn-primary btn-full" onclick="proceedToCheckout()">Checkout →</button>
+  </div>
+</aside>
+
+<!-- ── HERO ───────────────────────────────────────── -->
+<div class="hosting-hero">
+  <span class="section-label">Web Hosting</span>
+  <h1>🌐 Fast, Simple,<br><span class="gradient-text">Reliable Hosting</span></h1>
+  <p>Built for beginners and small businesses. No hidden fees. SSD storage, free SSL, and rock-solid 99.9% uptime on every plan.</p>
+
+  <div class="toggle-wrap">
+    <button class="toggle-btn active" id="monthly-btn" onclick="setBilling('monthly')">Monthly</button>
+    <button class="toggle-btn" id="yearly-btn" onclick="setBilling('yearly')">
+      Yearly <span class="save-badge">Save 20%</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── PRICING ────────────────────────────────────── -->
+<section class="plans-section">
+  <div class="container">
+    <div class="pricing-grid">
+
+      <!-- STARTER -->
+      <div class="plan-card fade-up">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price" id="price-starter">$4.99 <span>/mo</span></div>
+        <div class="plan-sub" id="sub-starter">Billed monthly</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 10 GB SSD Storage</li>
+          <li><span class="check">✓</span> 1 Website</li>
+          <li><span class="check">✓</span> Free SSL Certificate</li>
+          <li><span class="check">✓</span> 1 Email Account</li>
+          <li><span class="check">✓</span> 99.9% Uptime SLA</li>
+          <li><span class="check">✓</span> 1-Click WordPress</li>
+          <li><span class="cross" style="color:var(--muted)">–</span> <span style="color:var(--muted)">Free Domain</span></li>
+          <li><span class="cross" style="color:var(--muted)">–</span> <span style="color:var(--muted)">Priority Support</span></li>
+        </ul>
+        <button onclick="hostingCheckout('Starter Hosting Plan', 4.99)" class="btn btn-outline btn-full">Get Started</button>
+      </div>
+
+      <!-- PRO -->
+      <div class="plan-card popular fade-up">
+        <div class="popular-badge">⭐ Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price" id="price-pro">$9.99 <span>/mo</span></div>
+        <div class="plan-sub" id="sub-pro">Billed monthly</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 50 GB SSD Storage</li>
+          <li><span class="check">✓</span> 5 Websites</li>
+          <li><span class="check">✓</span> Free SSL Certificate</li>
+          <li><span class="check">✓</span> 10 Email Accounts</li>
+          <li><span class="check">✓</span> 99.9% Uptime SLA</li>
+          <li><span class="check">✓</span> 1-Click WordPress</li>
+          <li><span class="check">✓</span> Free Domain (1 year)</li>
+          <li><span class="cross" style="color:var(--muted)">–</span> <span style="color:var(--muted)">Priority Support</span></li>
+        </ul>
+        <button onclick="hostingCheckout('Pro Hosting Plan', 9.99)" class="btn btn-primary btn-full">Get Started</button>
+      </div>
+
+      <!-- BUSINESS -->
+      <div class="plan-card fade-up">
+        <div class="plan-name">Business</div>
+        <div class="plan-price" id="price-biz">$19.99 <span>/mo</span></div>
+        <div class="plan-sub" id="sub-biz">Billed monthly</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> Unlimited SSD Storage</li>
+          <li><span class="check">✓</span> Unlimited Websites</li>
+          <li><span class="check">✓</span> Free SSL Certificate</li>
+          <li><span class="check">✓</span> Unlimited Emails</li>
+          <li><span class="check">✓</span> 99.9% Uptime SLA</li>
+          <li><span class="check">✓</span> 1-Click WordPress</li>
+          <li><span class="check">✓</span> Free Domain (1 year)</li>
+          <li><span class="check">✓</span> Priority Support 24/7</li>
+        </ul>
+        <button onclick="hostingCheckout('Business Hosting Plan', 19.99)" class="btn btn-outline btn-full">Get Started</button>
+      </div>
+
+    </div>
+
+    <!-- Money back -->
+    <p style="text-align:center;color:var(--muted);margin-top:36px;font-size:0.88rem;">
+      🔒 30-day money-back guarantee &nbsp;·&nbsp; No setup fees &nbsp;·&nbsp; Cancel anytime
+    </p>
+  </div>
+</section>
+
+<!-- ── ADD-ONS ─────────────────────────────────────── -->
+<section class="addons-section">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-header">
+      <span class="section-label">Extras</span>
+      <h2>Add-on Services</h2>
+      <p>Enhance your hosting with these optional services.</p>
+    </div>
+    <div class="addons-grid">
+      <div class="addon-card fade-up">
+        <div class="addon-icon">🌐</div>
+        <h4>Domain Registration</h4>
+        <p>Get your custom .com, .ca or other TLD domain registered and managed through Digital10.</p>
+        <div class="addon-price">From $12.99 / year</div>
+      </div>
+      <div class="addon-card fade-up">
+        <div class="addon-icon">📧</div>
+        <h4>Professional Email</h4>
+        <p>Custom email addresses @yourdomain with webmail, spam filtering and forwarding.</p>
+        <div class="addon-price">$2.99 / mailbox / mo</div>
+      </div>
+      <div class="addon-card fade-up">
+        <div class="addon-icon">🛡️</div>
+        <h4>Daily Backups</h4>
+        <p>Automated daily backups with 30-day retention and one-click restore.</p>
+        <div class="addon-price">$1.99 / month</div>
+      </div>
+      <div class="addon-card fade-up">
+        <div class="addon-icon">⚡</div>
+        <h4>CDN & Speed Boost</h4>
+        <p>Global CDN integration to speed up your website for visitors worldwide.</p>
+        <div class="addon-price">$3.99 / month</div>
+      </div>
+      <div class="addon-card fade-up">
+        <div class="addon-icon">🔒</div>
+        <h4>Advanced SSL (Wildcard)</h4>
+        <p>Wildcard SSL certificate covers your domain and all subdomains.</p>
+        <div class="addon-price">$9.99 / year</div>
+      </div>
+      <div class="addon-card fade-up">
+        <div class="addon-icon">🛠️</div>
+        <h4>Managed WordPress</h4>
+        <p>Fully managed WordPress hosting with auto-updates, staging and expert support.</p>
+        <div class="addon-price">$4.99 / month</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ────────────────────────────────────────── -->
+<section class="faq-section">
+  <div class="section-header">
+    <span class="section-label">Help</span>
+    <h2>Frequently Asked Questions</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">What does "1-Click WordPress" mean?</div>
+      <div class="faq-a">It means you can install a full WordPress website in seconds, no coding required. It's perfect for beginners building their first blog, portfolio or business site.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I upgrade my plan later?</div>
+      <div class="faq-a">Absolutely. You can upgrade from Starter to Pro or Business at any time, and the cost is prorated; you only pay the difference.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is the free SSL certificate included immediately?</div>
+      <div class="faq-a">Yes. Every Digital10 hosting plan includes a Let's Encrypt SSL certificate that is provisioned automatically when you set up your domain.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What is the 30-day money-back guarantee?</div>
+      <div class="faq-a">If you're not satisfied for any reason within the first 30 days, contact us and we'll refund your payment in full, no questions asked.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How do I get started?</div>
+      <div class="faq-a">Click "Get Started" on any plan to send us an email. We'll respond within 24 hours to set up your account and walk you through the process. Full Stripe online checkout is coming soon.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10" class="footer-logo">
+      <p>Hosting, eSIM, and electronics, built for makers and small businesses across Canada.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="hosting.html">Web Hosting</a>
+      <a href="esim.html">eSIM Plans</a>
+      <a href="shop.html">Electronics Shop</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </div>
+    <div class="footer-col">
+      <h4>Hosting</h4>
+      <a href="hosting.html">Starter Plan</a>
+      <a href="hosting.html">Pro Plan</a>
+      <a href="hosting.html">Business Plan</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <a href="mailto:info@digital10.ca">info@digital10.ca</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Digital10. All rights reserved.</p>
+    <div class="stripe-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+      Powered by Stripe
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+const prices = {
+  monthly:  { starter: '$4.99',  pro: '$9.99',  biz: '$19.99' },
+  yearly:   { starter: '$3.99',  pro: '$7.99',  biz: '$15.99' }
+};
+let billing = 'monthly';
+
+function setBilling(mode) {
+  billing = mode;
+  document.getElementById('monthly-btn').classList.toggle('active', mode === 'monthly');
+  document.getElementById('yearly-btn').classList.toggle('active', mode === 'yearly');
+  const p = prices[mode];
+  const label = mode === 'yearly' ? 'Billed yearly' : 'Billed monthly';
+  ['starter','pro','biz'].forEach(k => {
+    document.getElementById(`price-${k}`).innerHTML = `${p[k]} <span>/mo</span>`;
+    document.getElementById(`sub-${k}`).textContent = label;
+  });
+}
+
+// FAQ accordion
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.parentElement;
+    item.classList.toggle('open');
+  });
+});
+
+window.setBilling = setBilling;
+
+function hostingCheckout(planName, monthlyPrice) {
+  const price = billing === 'yearly' ? parseFloat((monthlyPrice * 0.8).toFixed(2)) : monthlyPrice;
+  const label = billing === 'yearly' ? '/mo (billed yearly)' : '/mo';
+  // Add to cart and open Stripe
+  const fakeProduct = { id: planName.replace(/\s/g,'_'), name: planName, price: price,
+    description: `${planName} — ${label}`, image: '', category: 'Hosting', condition: 'New' };
+  window.cart = window.cart || [];
+  // Replace any existing hosting plan
+  window.cart = window.cart.filter(i => i.category !== 'Hosting');
+  window.cart.push({ ...fakeProduct, qty: 1 });
+  localStorage.setItem('d10_cart', JSON.stringify(window.cart));
+  proceedToCheckout();
+}
+window.hostingCheckout = hostingCheckout;
+</script>
+</body>
+</html>

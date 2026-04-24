@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Digital10 Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #07111f;
+      --card:   #0f1f35;
+      --card2:  #162840;
+      --blue:   #2f80ed;
+      --cyan:   #00b4d8;
+      --green:  #22c55e;
+      --yellow: #f59e0b;
+      --red:    #ef4444;
+      --purple: #a855f7;
+      --border: #1e3a5f;
+      --text:   #e2eaf4;
+      --muted:  #7a9bbf;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; min-height: 100vh; }
+
+    /* ── LOGIN ── */
+    #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 0%, #0d2040 0%, #07111f 70%); }
+    .login-box { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px 36px; text-align: center; }
+    .login-box h1 { font-size: 26px; font-weight: 900; color: var(--blue); letter-spacing: -0.5px; }
+    .login-box p  { color: var(--muted); font-size: 13px; margin: 6px 0 28px; }
+    .login-input { width: 100%; background: var(--card2); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 15px; font-family: inherit; margin-bottom: 14px; transition: border-color 0.2s; }
+    .login-input:focus { outline: none; border-color: var(--blue); }
+    .login-btn { width: 100%; padding: 13px; border-radius: 10px; background: var(--blue); color: #fff; font-size: 15px; font-weight: 700; border: none; cursor: pointer; transition: opacity 0.2s; }
+    .login-btn:hover { opacity: 0.88; }
+    #login-error { color: var(--red); font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+    /* ── APP ── */
+    #app { display: none; }
+
+    /* ── TOPBAR ── */
+    .topbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 24px; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .topbar-brand { font-size: 18px; font-weight: 900; color: var(--blue); letter-spacing: -0.5px; }
+    .topbar-brand span { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 8px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .mode-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+    .mode-badge.live { background: rgba(34,197,94,0.15); color: var(--green); border-color: rgba(34,197,94,0.3); }
+    .btn-sm { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--card2); color: var(--muted); transition: all 0.15s; }
+    .btn-sm:hover { color: var(--text); border-color: var(--blue); }
+
+    /* ── MAIN ── */
+    .main { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+
+    /* ── STATS ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+    .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .stat-value { font-size: 28px; font-weight: 800; margin-top: 6px; color: var(--text); }
+    .stat-value.blue   { color: var(--blue); }
+    .stat-value.yellow { color: var(--yellow); }
+    .stat-value.green  { color: var(--green); }
+    .stat-value.cyan   { color: var(--cyan); }
+    .stat-value.purple { color: var(--purple); }
+
+    /* ── TOOLBAR ── */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .search-input { flex: 1; min-width: 200px; background: var(--card2); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 14px; color: var(--text); font-size: 13px; font-family: inherit; transition: border-color 0.2s; }
+    .search-input:focus { outline: none; border-color: var(--blue); }
+    .export-btn { padding: 9px 14px; border-radius: 10px; font-size: 12px; font-weight: 700; border: 1px solid var(--border); background: var(--card2); color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .export-btn:hover { color: var(--text); border-color: var(--cyan); }
+
+    /* Filter tabs */
+    .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); white-space: nowrap; }
+    .tab-group { display: flex; gap: 3px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
+    .tab-btn { padding: 6px 13px; border-radius: 7px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.15s; white-space: nowrap; }
+    .tab-btn.active { background: var(--blue); color: #fff; }
+    .tab-btn.active.esim-tab { background: var(--purple); }
+    .tab-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; align-self: center; }
+
+    /* ── TABLE ── */
+    .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); background: var(--card2); border-bottom: 1px solid var(--border); }
+    tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--card2); }
+    tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); }
+    .order-num { font-family: monospace; font-weight: 700; color: var(--blue); font-size: 12px; }
+    .customer-name { font-weight: 600; }
+    .customer-email { color: var(--muted); font-size: 12px; }
+    .amount { font-weight: 700; }
+    .type-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .type-electronics { background: rgba(0,180,216,0.12); color: var(--cyan); }
+    .type-esim        { background: rgba(168,85,247,0.12); color: var(--purple); }
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-pending   { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .status-shipped   { background: rgba(0,180,216,0.15);  color: var(--cyan); }
+    .status-delivered { background: rgba(34,197,94,0.15);  color: var(--green); }
+    .status-cancelled { background: rgba(239,68,68,0.15);  color: var(--red); }
+    .empty-state { padding: 60px; text-align: center; color: var(--muted); }
+    .empty-state div { font-size: 40px; margin-bottom: 12px; }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; transform: scale(0.96); transition: transform 0.25s; }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal-header { padding: 22px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--card); z-index: 10; }
+    .modal-header h3 { font-size: 16px; font-weight: 700; }
+    .modal-header-sub { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+    .modal-close { width: 32px; height: 32px; border-radius: 8px; background: var(--card2); border: 1px solid var(--border); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.15s; }
+    .modal-close:hover { color: var(--text); border-color: var(--blue); }
+    .modal-body { padding: 24px 28px; }
+    .modal-section { margin-bottom: 24px; }
+    .modal-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(30,58,95,0.5); font-size: 13px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--muted); }
+    .info-value { font-weight: 600; text-align: right; }
+    .items-list { display: flex; flex-direction: column; gap: 8px; }
+    .item-row { display: flex; align-items: center; justify-content: space-between; background: var(--card2); border-radius: 10px; padding: 10px 14px; }
+    .item-name { font-weight: 600; font-size: 13px; }
+    .item-qty  { color: var(--muted); font-size: 12px; }
+    .item-price { font-weight: 700; color: var(--blue); }
+    .order-total { display: flex; justify-content: space-between; padding: 14px; background: rgba(47,128,237,0.08); border: 1px solid rgba(47,128,237,0.2); border-radius: 10px; font-size: 16px; font-weight: 800; margin-top: 10px; }
+    .order-total-amount { color: var(--blue); }
+
+    /* Ship form */
+    .ship-form { display: flex; flex-direction: column; gap: 12px; }
+    .field-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; display: block; }
+    .field-input { width: 100%; background: var(--card2); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 13px; font-family: inherit; transition: border-color 0.2s; }
+    .field-input:focus { outline: none; border-color: var(--blue); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* eSIM info panel */
+    .esim-info-panel { background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); border-radius: 12px; padding: 16px; }
+    .esim-info-panel .modal-section-title { color: var(--purple); }
+    .esim-lpa { margin-top: 10px; padding: 10px 12px; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; font-family: monospace; font-size: 11px; color: var(--cyan); word-break: break-all; line-height: 1.5; }
+
+    /* Invoice panel */
+    .invoice-panel { background: rgba(47,128,237,0.06); border: 1px solid rgba(47,128,237,0.2); border-radius: 12px; padding: 16px; margin-top: 4px; }
+    .invoice-panel-title { font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+    .invoice-note { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* Actions */
+    .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .btn-primary { flex: 1; padding: 11px 20px; border-radius: 10px; background: var(--blue); color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; transition: opacity 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary.purple { background: var(--purple); }
+    .btn-secondary { padding: 11px 16px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 7px; }
+    .btn-secondary:hover { color: var(--text); border-color: var(--blue); }
+    .btn-danger { padding: 11px 16px; border-radius: 10px; background: transparent; border: 1.5px solid rgba(239,68,68,0.3); color: var(--red); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn-danger:hover { background: rgba(239,68,68,0.1); }
+
+    /* Toast */
+    .toast-top { position: fixed; top: 70px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--text); animation: toastIn 0.25s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    @keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
+
+    .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.2); border-top-color:currentColor; border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .field-row { grid-template-columns: 1fr; }
+      thead th:nth-child(3), tbody td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Digital10</h1>
+    <p>Admin Dashboard: Enter your password</p>
+    <input class="login-input" type="password" id="pwd-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">Digital10 <span>Admin</span></div>
+    <div class="topbar-right">
+      <span class="mode-badge" id="mode-badge">Sandbox</span>
+      <button class="btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value blue" id="stat-revenue">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value" id="stat-orders">—</div></div>
+      <div class="stat-card"><div class="stat-label">Electronics</div><div class="stat-value cyan" id="stat-electronics">—</div></div>
+      <div class="stat-card"><div class="stat-label">eSIM Plans</div><div class="stat-value purple" id="stat-esim">—</div></div>
+      <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value yellow" id="stat-pending">—</div></div>
+      <div class="stat-card"><div class="stat-label">Delivered</div><div class="stat-value green" id="stat-delivered">—</div></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input class="search-input" type="search" id="search-input" placeholder="Search by name, email, or order #" oninput="renderOrders()">
+      <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="export-btn" style="border-color:var(--blue);color:var(--blue);" onclick="loadData()">↻ Refresh</button>
+    </div>
+
+    <!-- Filter rows -->
+    <div class="filter-row">
+      <span class="filter-group-label">Category:</span>
+      <div class="tab-group" id="type-tabs">
+        <button class="tab-btn active" data-type="all"          onclick="setTypeFilter('all',this)">All</button>
+        <button class="tab-btn"        data-type="electronics"  onclick="setTypeFilter('electronics',this)">📦 Electronics</button>
+        <button class="tab-btn esim-tab" data-type="esim"       onclick="setTypeFilter('esim',this)">📶 eSIM</button>
+      </div>
+      <div class="tab-divider"></div>
+      <span class="filter-group-label">Status:</span>
+      <div class="tab-group" id="status-tabs">
+        <button class="tab-btn active" data-status="all"       onclick="setStatusFilter('all',this)">All</button>
+        <button class="tab-btn"        data-status="pending"   onclick="setStatusFilter('pending',this)">Pending</button>
+        <button class="tab-btn"        data-status="shipped"   onclick="setStatusFilter('shipped',this)">Shipped</button>
+        <button class="tab-btn"        data-status="delivered" onclick="setStatusFilter('delivered',this)">Delivered</button>
+        <button class="tab-btn"        data-status="cancelled" onclick="setStatusFilter('cancelled',this)">Cancelled</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Total</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="orders-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="order-modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-header-sub" id="modal-type-label">Order Detail</div>
+        <h3 id="modal-order-num">—</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast-top" id="toast-top"></div>
+
+<script>
+  let adminToken     = sessionStorage.getItem('d10_admin') || '';
+  let allOrders      = [];
+  let currentTypeFilter   = 'all';
+  let currentStatusFilter = 'all';
+  let currentOrder   = null;
+
+  // ── AUTH ─────────────────────────────────────
+  async function doLogin() {
+    const pwd = document.getElementById('pwd-input').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    try {
+      const r = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ password: pwd }) });
+      const d = await r.json();
+      if (r.ok) {
+        adminToken = pwd;
+        sessionStorage.setItem('d10_admin', pwd);
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        loadData();
+      } else {
+        errEl.textContent = d.error || 'Incorrect password.';
+      }
+    } catch { errEl.textContent = 'Could not connect to server.'; }
+  }
+
+  function doLogout() {
+    sessionStorage.removeItem('d10_admin');
+    adminToken = '';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('pwd-input').value = '';
+  }
+
+  if (adminToken) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadData();
+  }
+
+  // ── DATA ──────────────────────────────────────
+  function adminHeaders() { return { 'Content-Type': 'application/json', 'x-admin-token': adminToken }; }
+
+  async function loadData() {
+    try {
+      const [statsRes, ordersRes, healthRes] = await Promise.all([
+        fetch('/api/admin/stats',  { headers: adminHeaders() }),
+        fetch('/api/admin/orders', { headers: adminHeaders() }),
+        fetch('/api/health')
+      ]);
+      if (statsRes.status === 401) { doLogout(); return; }
+
+      const stats  = await statsRes.json();
+      const orders = await ordersRes.json();
+      const health = await healthRes.json();
+      allOrders = orders;
+
+      // Compute type counts
+      const esimCount = orders.filter(o => o.type === 'esim').length;
+      const elecCount = orders.filter(o => o.type !== 'esim').length;
+
+      document.getElementById('stat-revenue').textContent    = '$' + (stats.totalRevenue || 0).toFixed(2);
+      document.getElementById('stat-orders').textContent     = stats.totalOrders || 0;
+      document.getElementById('stat-electronics').textContent = elecCount;
+      document.getElementById('stat-esim').textContent       = esimCount;
+      document.getElementById('stat-pending').textContent    = stats.pending || 0;
+      document.getElementById('stat-delivered').textContent  = stats.delivered || 0;
+
+      const badge = document.getElementById('mode-badge');
+      if (health.mode === 'live') { badge.textContent = '🟢 LIVE'; badge.classList.add('live'); }
+      else { badge.textContent = '🟡 Sandbox'; badge.classList.remove('live'); }
+
+      renderOrders();
+    } catch (err) { showToast('Could not load data. Is the server running?'); }
+  }
+
+  // ── RENDER ────────────────────────────────────
+  function renderOrders() {
+    const tbody  = document.getElementById('orders-tbody');
+    const search = document.getElementById('search-input').value.toLowerCase();
+    let   orders = [...allOrders];
+
+    // Type filter
+    if (currentTypeFilter === 'esim')        orders = orders.filter(o => o.type === 'esim');
+    else if (currentTypeFilter === 'electronics') orders = orders.filter(o => o.type !== 'esim');
+
+    // Status filter
+    if (currentStatusFilter !== 'all') orders = orders.filter(o => o.status === currentStatusFilter);
+
+    // Search
+    if (search) orders = orders.filter(o =>
+      o.customer?.name?.toLowerCase().includes(search)  ||
+      o.customer?.email?.toLowerCase().includes(search) ||
+      o.orderNumber?.toLowerCase().includes(search)
+    );
+
+    if (orders.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div>📦</div><p>No orders found</p></div></td></tr>`;
+      return;
+    }
+
+    const currency = o => o.type === 'esim' ? 'USD' : 'CAD';
+
+    tbody.innerHTML = orders.map(o => {
+      const isEsim = o.type === 'esim';
+      return `
+      <tr onclick="openOrder('${o.id}')">
+        <td><span class="order-num">${o.orderNumber}</span></td>
+        <td>
+          <div class="customer-name">${esc(o.customer?.name || '—')}</div>
+          <div class="customer-email">${esc(o.customer?.email || '')}</div>
+        </td>
+        <td>${fmtDate(o.date)}</td>
+        <td><span class="type-badge ${isEsim ? 'type-esim' : 'type-electronics'}">${isEsim ? '📶 eSIM' : '📦 Electronics'}</span></td>
+        <td class="amount">$${(o.total || 0).toFixed(2)} <span style="font-size:11px;color:var(--muted);">${currency(o)}</span></td>
+        <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function setTypeFilter(type, el) {
+    currentTypeFilter = type;
+    document.querySelectorAll('#type-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderOrders();
+  }
+
+  function setStatusFilter(status, el) {
+    currentStatusFilter = status;
+    document.querySelectorAll('#status-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderOrders();
+  }
+
+  // ── ORDER MODAL ───────────────────────────────
+  function openOrder(id) {
+    currentOrder = allOrders.find(o => o.id === id);
+    if (!currentOrder) return;
+    const isEsim = currentOrder.type === 'esim';
+    document.getElementById('modal-order-num').textContent = currentOrder.orderNumber;
+    document.getElementById('modal-type-label').innerHTML  =
+      `<span class="type-badge ${isEsim ? 'type-esim' : 'type-electronics'}" style="font-size:10px;">${isEsim ? '📶 eSIM' : '📦 Electronics'}</span> Order Detail`;
+    document.getElementById('modal-body').innerHTML = isEsim ? buildEsimModalHTML(currentOrder) : buildPhysicalModalHTML(currentOrder);
+    document.getElementById('modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ── PHYSICAL ORDER MODAL ─────────────────────
+  function buildPhysicalModalHTML(o) {
+    const items = (o.items || []).map(i => `
+      <div class="item-row">
+        <div><div class="item-name">${esc(i.name)}</div><div class="item-qty">Qty: ${i.qty}</div></div>
+        <div class="item-price">$${(i.price * i.qty).toFixed(2)}</div>
+      </div>`).join('');
+
+    const trackingInfo = o.tracking ? `
+      <div class="info-row"><span class="info-label">Tracking #</span><span class="info-value" style="color:var(--cyan);">${esc(o.tracking)}</span></div>
+      <div class="info-row"><span class="info-label">Carrier</span><span class="info-value">${esc(o.carrier || '—')}</span></div>
+      ${o.shippedAt ? `<div class="info-row"><span class="info-label">Shipped</span><span class="info-value">${fmtDate(o.shippedAt)}</span></div>` : ''}
+    ` : '';
+
+    return `
+      <div class="modal-section">
+        <div class="modal-section-title">Customer</div>
+        <div class="info-row"><span class="info-label">Name</span><span class="info-value">${esc(o.customer?.name || '—')}</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span class="info-value">${esc(o.customer?.email || '—')}</span></div>
+        <div class="info-row"><span class="info-label">Postal</span><span class="info-value">${esc(o.customer?.postal || '—')}</span></div>
+        <div class="info-row"><span class="info-label">Date</span><span class="info-value">${fmtDate(o.date)}</span></div>
+        <div class="info-row"><span class="info-label">Payment ID</span><span class="info-value" style="font-family:monospace;font-size:11px;color:var(--muted);">${o.id}</span></div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Items</div>
+        <div class="items-list">${items}</div>
+        <div class="order-total"><span>Total</span><span class="order-total-amount">$${(o.total || 0).toFixed(2)} CAD</span></div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Shipping: <span class="status-badge status-${o.status}">${o.status}</span></div>
+        ${trackingInfo}
+        <div class="ship-form">
+          <div class="field-row">
+            <div>
+              <label class="field-label">Carrier</label>
+              <select class="field-input" id="ship-carrier">
+                <option value="">Select carrier…</option>
+                <option ${o.carrier==='Canada Post'?'selected':''}>Canada Post</option>
+                <option ${o.carrier==='Purolator'?'selected':''}>Purolator</option>
+                <option ${o.carrier==='UPS'?'selected':''}>UPS</option>
+                <option ${o.carrier==='FedEx'?'selected':''}>FedEx</option>
+                <option ${o.carrier==='DHL'?'selected':''}>DHL</option>
+                <option ${o.carrier==='Other'?'selected':''}>Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">Tracking Number</label>
+              <input class="field-input" id="ship-tracking" type="text" placeholder="e.g. 1234567890" value="${esc(o.tracking || '')}">
+            </div>
+          </div>
+          <div>
+            <label class="field-label">Status</label>
+            <select class="field-input" id="ship-status">
+              <option value="pending"   ${o.status==='pending'?'selected':''}>Pending</option>
+              <option value="shipped"   ${o.status==='shipped'?'selected':''}>Shipped</option>
+              <option value="delivered" ${o.status==='delivered'?'selected':''}>Delivered</option>
+              <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Internal Notes</label>
+            <textarea class="field-input" id="ship-notes" rows="2" placeholder="Notes visible only to you…">${esc(o.notes || '')}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="invoice-panel">
+        <div class="invoice-panel-title">📄 Invoice</div>
+        <p class="invoice-note">A branded invoice was automatically emailed to <strong style="color:var(--text);">${esc(o.customer?.email || '')}</strong> when this order was placed.</p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="savePhysicalOrder()">💾 Save Changes</button>
+        <button class="btn-secondary" onclick="resendInvoice()">📧 Resend Invoice</button>
+        <button class="btn-danger" onclick="deleteOrder()">🗑 Delete</button>
+      </div>`;
+  }
+
+  // ── eSIM ORDER MODAL ─────────────────────────
+  function buildEsimModalHTML(o) {
+    const items = (o.items || []).map(i => `
+      <div class="item-row">
+        <div><div class="item-name">${esc(i.name)}</div><div class="item-qty">Qty: ${i.qty}</div></div>
+        <div class="item-price">$${(i.price * i.qty).toFixed(2)}</div>
+      </div>`).join('');
+
+    const deliveryStatus = o.esimDelivered
+      ? `<span style="color:var(--green);font-weight:700;">✅ QR Code Sent</span>`
+      : `<span style="color:var(--yellow);font-weight:700;">⏳ Pending delivery</span>`;
+
+    const lpaSection = o.esimLPA ? `
+      <div style="margin-top:6px;">
+        <div class="field-label" style="margin-bottom:4px;">Activation Code (LPA)</div>
+        <div class="esim-lpa">${esc(o.esimLPA)}</div>
+      </div>` : '';
+
+    return `
+      <div class="modal-section">
+        <div class="modal-section-title">Customer</div>
+        <div class="info-row"><span class="info-label">Name</span><span class="info-value">${esc(o.customer?.name || '—')}</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span class="info-value">${esc(o.customer?.email || '—')}</span></div>
+        <div class="info-row"><span class="info-label">Date</span><span class="info-value">${fmtDate(o.date)}</span></div>
+        <div class="info-row"><span class="info-label">Payment ID</span><span class="info-value" style="font-family:monospace;font-size:11px;color:var(--muted);">${o.id}</span></div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Plan</div>
+        <div class="items-list">${items}</div>
+        <div class="order-total"><span>Total</span><span class="order-total-amount">$${(o.total || 0).toFixed(2)} USD</span></div>
+      </div>
+
+      <div class="modal-section">
+        <div class="esim-info-panel">
+          <div class="modal-section-title">📶 eSIM Delivery</div>
+          <div class="info-row">
+            <span class="info-label">Provider Order #</span>
+            <span class="info-value">
+              ${o.esimOrderNo
+                ? `<span style="font-family:monospace;color:var(--cyan);">${esc(o.esimOrderNo)}</span>`
+                : `<input id="esim-order-no-input" class="field-input" style="width:200px;padding:5px 10px;font-size:12px;font-family:monospace;" placeholder="Enter from eSIM Access dashboard" value="">`
+              }
+            </span>
+          </div>
+          <div class="info-row"><span class="info-label">Package Code</span><span class="info-value" style="font-family:monospace;">${esc(o.esimPackageCode || '—')}</span></div>
+          <div class="info-row"><span class="info-label">Status</span><span class="info-value">${deliveryStatus}</span></div>
+          ${o.deliveredAt ? `<div class="info-row"><span class="info-label">QR Sent At</span><span class="info-value">${fmtDate(o.deliveredAt)}</span></div>` : ''}
+          ${o.esimPlaceError ? `<div style="margin-top:10px;padding:9px 12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;font-size:11px;color:#f87171;line-height:1.5;font-family:monospace;">API error: ${esc(o.esimPlaceError)}</div>` : ''}
+          ${!o.esimOrderNo ? `<div style="margin-top:10px;padding:9px 12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:8px;font-size:12px;color:var(--yellow);line-height:1.5;">⚠️ Order was NOT placed with eSIM provider. Use <strong>Test API</strong> below to diagnose, then enter the order # manually if you placed it from the dashboard.</div>` : ''}
+          ${lpaSection}
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Internal Notes</div>
+        <textarea class="field-input" id="esim-notes" rows="2" placeholder="Notes visible only to you…">${esc(o.notes || '')}</textarea>
+      </div>
+
+      <div class="invoice-panel">
+        <div class="invoice-panel-title">📄 Invoice</div>
+        <p class="invoice-note">An order confirmation invoice was automatically emailed to <strong style="color:var(--text);">${esc(o.customer?.email || '')}</strong>. A separate eSIM installation email with the QR code is sent once the profile is ready.</p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary purple" onclick="resendEsimInstructions()">📶 Resend eSIM Instructions</button>
+        <button class="btn-secondary" onclick="resendInvoice()">📧 Resend Invoice</button>
+        <button class="btn-secondary" onclick="saveEsimNotes()">💾 Save Notes</button>
+        <button class="btn-secondary" onclick="debugEsimOrder('${esc(o.esimOrderNo || '')}','${esc(o.esimTransactionId || '')}')">🔧 Test API</button>
+        <button class="btn-danger" onclick="deleteOrder()">🗑 Delete</button>
+      </div>
+      <div id="esim-debug-result" style="display:none;margin-top:14px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;font-size:11px;font-family:monospace;color:var(--cyan);white-space:pre-wrap;word-break:break-all;max-height:240px;overflow-y:auto;"></div>`;
+  }
+
+  // ── SAVE PHYSICAL ORDER ──────────────────────
+  async function savePhysicalOrder() {
+    if (!currentOrder) return;
+    const updates = {
+      status:   document.getElementById('ship-status').value,
+      carrier:  document.getElementById('ship-carrier').value,
+      tracking: document.getElementById('ship-tracking').value.trim(),
+      notes:    document.getElementById('ship-notes').value.trim()
+    };
+    try {
+      const r = await fetch(`/api/admin/orders/${currentOrder.id}`, {
+        method: 'PATCH', headers: adminHeaders(), body: JSON.stringify(updates)
+      });
+      if (!r.ok) throw new Error((await r.json()).error);
+      const updated = await r.json();
+      const idx = allOrders.findIndex(o => o.id === updated.id);
+      if (idx !== -1) allOrders[idx] = updated;
+      currentOrder = updated;
+      showToast('✅ Order saved. Shipping email sent to customer.');
+      renderOrders();
+    } catch (err) { showToast('❌ ' + err.message); }
+  }
+
+  // ── SAVE eSIM NOTES ──────────────────────────
+  async function saveEsimNotes() {
+    if (!currentOrder) return;
+    const updates = { notes: document.getElementById('esim-notes').value.trim() };
+    try {
+      const r = await fetch(`/api/admin/orders/${currentOrder.id}`, {
+        method: 'PATCH', headers: adminHeaders(), body: JSON.stringify(updates)
+      });
+      if (!r.ok) throw new Error((await r.json()).error);
+      const updated = await r.json();
+      const idx = allOrders.findIndex(o => o.id === updated.id);
+      if (idx !== -1) allOrders[idx] = updated;
+      currentOrder = updated;
+      showToast('✅ Notes saved.');
+      renderOrders();
+    } catch (err) { showToast('❌ ' + err.message); }
+  }
+
+  // ── DELETE ORDER ─────────────────────────────
+  async function deleteOrder() {
+    if (!currentOrder) return;
+    if (!confirm(`Delete order ${currentOrder.orderNumber}? This cannot be undone.`)) return;
+    try {
+      await fetch(`/api/admin/orders/${currentOrder.id}`, { method: 'DELETE', headers: adminHeaders() });
+      allOrders = allOrders.filter(o => o.id !== currentOrder.id);
+      closeModal();
+      renderOrders();
+      loadData();
+      showToast('🗑 Order deleted.');
+    } catch { showToast('❌ Could not delete order.'); }
+  }
+
+  // ── RESEND INVOICE ───────────────────────────
+  async function resendInvoice() {
+    if (!currentOrder) return;
+    try {
+      const r = await fetch(`/api/admin/orders/${currentOrder.id}/resend-invoice`, { method:'POST', headers: adminHeaders() });
+      const d = await r.json();
+      if (r.ok) showToast('📧 Invoice resent to ' + currentOrder.customer?.email);
+      else showToast('❌ ' + (d.error || 'Email failed.'));
+    } catch { showToast('❌ Email failed. Check SMTP settings.'); }
+  }
+
+  // ── RESEND eSIM INSTRUCTIONS ─────────────────
+  async function resendEsimInstructions() {
+    if (!currentOrder) return;
+
+    // Pick up manually entered order number if present
+    const manualInput = document.getElementById('esim-order-no-input');
+    const manualOrderNo = manualInput ? manualInput.value.trim() : '';
+
+    if (!currentOrder.esimOrderNo && !manualOrderNo) {
+      showToast('⚠️ Enter the Provider Order # from the eSIM Access dashboard first.');
+      if (manualInput) manualInput.focus();
+      return;
+    }
+
+    showToast('⏳ Fetching eSIM profile from provider…');
+    try {
+      const body = {};
+      if (manualOrderNo) body.esimOrderNo = manualOrderNo;
+
+      const r = await fetch(`/api/admin/orders/${currentOrder.id}/resend-esim`, {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      if (r.ok) {
+        showToast('📶 eSIM instructions sent to ' + currentOrder.customer?.email);
+        await loadData();
+        openOrder(currentOrder.id);
+      } else {
+        showToast('❌ ' + (d.error || 'Could not send instructions.'));
+      }
+    } catch { showToast('❌ Request failed. Check server.'); }
+  }
+
+  // ── DEBUG eSIM API ────────────────────────────
+  async function debugEsimOrder(esimOrderNo, transactionId) {
+    const el = document.getElementById('esim-debug-result');
+    if (!el) return;
+    if (!esimOrderNo) { showToast('⚠️ No provider order # to debug.'); return; }
+    el.style.display = 'block';
+    el.textContent = '⏳ Testing query endpoints…';
+    try {
+      const r = await fetch('/api/admin/esim/debug-order', {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: JSON.stringify({ esimOrderNo, transactionId })
+      });
+      const d = await r.json();
+      el.textContent = JSON.stringify(d, null, 2);
+    } catch (e) {
+      el.textContent = '❌ ' + e.message;
+    }
+  }
+
+  // ── EXPORT CSV ───────────────────────────────
+  function exportCSV() {
+    window.location.href = `/api/admin/export?token=${encodeURIComponent(adminToken)}`;
+  }
+
+  // ── HELPERS ──────────────────────────────────
+  function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('en-CA', { month:'short', day:'numeric', year:'numeric' });
+  }
+  function showToast(msg) {
+    const c = document.getElementById('toast-top');
+    const t = document.createElement('div');
+    t.className = 'toast-item'; t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+</script>
+</body>
+</html>

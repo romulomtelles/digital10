@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electronics Shop | Digital10</title>
+  <meta name="description" content="Shop Arduino boards, sensors, servo motors, cables, and electronics components. Canada-wide shipping from Digital10.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    /* Quick View modal container */
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      max-width: 720px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.95);
+      transition: transform 0.3s;
+      position: relative;
+    }
+    #modal-overlay.open .modal-box { transform: scale(1); }
+    .modal-box-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .modal-left {
+      background: #0a1929;
+      padding: 36px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--border);
+      border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    }
+    .modal-left img { max-height: 200px; object-fit: contain; }
+    .modal-right { padding: 36px 28px; display: flex; flex-direction: column; }
+    .modal-x {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .modal-x:hover { background: var(--border); color: var(--text); }
+
+    @media (max-width: 600px) {
+      .modal-box-inner { grid-template-columns: 1fr; }
+      .modal-left { border-right: none; border-bottom: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────── -->
+<header class="nav-header">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10">
+    </a>
+    <nav class="nav-links">
+      <a href="hosting.html">Hosting</a>
+      <a href="esim.html">eSIM</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="cart-btn" id="cart-toggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Cart
+        <span class="cart-count hidden" id="cart-count">0</span>
+      </button>
+      <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="hosting.html">🌐 Hosting</a>
+    <a href="esim.html">📶 eSIM</a>
+    <a href="shop.html">⚡ Electronics</a>
+    <a href="coding-robotics.html">🤖 Coding & Robotics</a>
+  </nav>
+</header>
+
+<!-- ── CART DRAWER ────────────────────────────────── -->
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <h3>🛒 Your Cart</h3>
+    <button class="cart-close" id="cart-close">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div class="cart-subtotal">
+      <span>Subtotal</span>
+      <span class="cart-total" id="cart-total">$0.00</span>
+    </div>
+    <p class="cart-note">Taxes and shipping calculated at checkout.</p>
+    <button class="btn btn-primary btn-full" onclick="proceedToCheckout()">
+      Checkout with Stripe →
+    </button>
+  </div>
+</aside>
+
+<!-- ── SHOP HEADER ────────────────────────────────── -->
+<div class="shop-header">
+  <div class="shop-header-inner">
+    <span class="section-label">Electronics</span>
+    <h1>⚡ Electronics Shop</h1>
+    <p>Arduino boards, sensors, motors, cables, and components. Canada-wide shipping.</p>
+  </div>
+</div>
+
+<!-- ── FILTERS ────────────────────────────────────── -->
+<div class="shop-controls">
+  <div class="shop-controls-inner">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" class="search-input" id="search-input" placeholder="Search products…">
+    </div>
+    <div class="category-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <select class="category-select" id="category-select">
+        <!-- Populated by JS -->
+      </select>
+    </div>
+    <select class="sort-select" id="sort-select">
+      <option value="default">Featured first</option>
+      <option value="price-asc">Price: Low → High</option>
+      <option value="price-desc">Price: High → Low</option>
+      <option value="name">Name A → Z</option>
+    </select>
+  </div>
+</div>
+
+<!-- ── PRODUCT GRID ───────────────────────────────── -->
+<div class="shop-layout">
+  <div class="shop-results" id="results-count">Loading products…</div>
+  <div id="products-grid">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ── QUICK VIEW MODAL ───────────────────────────── -->
+<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="modal-box-inner">
+      <div class="modal-left">
+        <img id="modal-img" src="" alt="Product image">
+      </div>
+      <div class="modal-right">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span class="product-cat" id="modal-cat"></span>
+          <span class="condition-badge" id="modal-condition"></span>
+        </div>
+        <h2 class="modal-name" id="modal-name" style="font-size:1.2rem;margin-bottom:12px;"></h2>
+        <p id="modal-desc" style="font-size:0.88rem;color:var(--muted);line-height:1.65;margin-bottom:20px;flex:1;"></p>
+        <div id="modal-price" style="font-size:2rem;font-weight:800;margin-bottom:20px;"></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" style="flex:1" onclick="modalAddToCart()">Add to Cart</button>
+          <button class="btn btn-outline" onclick="closeModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10" class="footer-logo">
+      <p>Electronics, hosting, and eSIM, built for makers across Canada.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="hosting.html">Web Hosting</a>
+      <a href="esim.html">eSIM Plans</a>
+      <a href="shop.html">Electronics Shop</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </div>
+    <div class="footer-col">
+      <h4>Categories</h4>
+      <a href="#" onclick="setCategory('Starter Kits');return false">Starter Kits</a>
+      <a href="#" onclick="setCategory('Boards & Microcontrollers');return false">Arduino Boards</a>
+      <a href="#" onclick="setCategory('Sensors');return false">Sensors</a>
+      <a href="#" onclick="setCategory('Motors & Actuators');return false">Motors & Servos</a>
+    </div>
+    <div class="footer-col">
+      <h4>Info</h4>
+      <a href="index.html#about">About</a>
+      <a href="mailto:info@digital10.ca">Contact</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Digital10. All rights reserved.</p>
+    <div class="stripe-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+      Secure payments by Stripe
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/shop.js"></script>
+<script>
+// Handle URL category param
+const urlParams = new URLSearchParams(window.location.search);
+const catParam = urlParams.get('cat');
+if (catParam) {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => setCategory(decodeURIComponent(catParam)), 300);
+  });
+}
+</script>
+</body>
+</html>

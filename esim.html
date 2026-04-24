@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global eSIM Plans | Digital10</title>
+  <meta name="description" content="Instant eSIM data plans for 190+ countries. Buy online, receive QR code by email, activate in minutes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    /* ── eSIM page layout ───────────────────── */
+    .esim-hero {
+      padding: 96px 28px 40px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(47,128,237,0.09), transparent 55%),
+        radial-gradient(ellipse at 80% 30%, rgba(0,180,216,0.06), transparent 50%);
+    }
+    .esim-hero h1 { margin: 120px auto 14px; line-height: 1.2; text-align: center; max-width: 640px; }
+    .esim-hero p  {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 420px;
+      text-align: center;
+      line-height: 1.7;
+      margin: 0 auto 20px;
+    }
+
+    /* Search */
+    .esim-search-wrap {
+      display: flex;
+      max-width: 520px;
+      width: 100%;
+      margin: 0 auto 0;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .esim-search-wrap:focus-within { border-color: var(--blue); }
+    .esim-search-icon {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .esim-search {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 13px 4px 13px 0;
+      color: var(--text);
+      font-size: 0.93rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .esim-search::placeholder { color: var(--muted); }
+
+    /* ── Filter Bar ─────────────────────────── */
+    .esim-filter-bar {
+      max-width: 1200px;
+      margin: 0 auto 16px;
+      padding: 0 28px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .filter-group svg {
+      position: absolute;
+      left: 11px;
+      pointer-events: none;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .filter-select {
+      padding: 9px 32px 9px 32px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a6a8a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color 0.2s, color 0.2s;
+      min-width: 130px;
+    }
+    .filter-select:focus { outline: none; border-color: var(--blue); }
+    .filter-select.has-value { border-color: var(--blue); color: var(--text); }
+
+    .filter-spacer { flex: 1; }
+
+    .sort-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .sort-select {
+      padding: 9px 32px 9px 10px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a6a8a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color 0.2s;
+    }
+    .sort-select:focus { outline: none; border-color: var(--blue); }
+
+    .filter-clear {
+      padding: 9px 14px;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+      display: none;
+    }
+    .filter-clear.visible { display: block; }
+    .filter-clear:hover { border-color: rgba(239,68,68,0.5); color: #f87171; }
+
+    /* ── Store layout ─────────────────────── */
+    .esim-store {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 28px 80px;
+    }
+
+    /* Rate + results bar */
+    .esim-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .esim-results-info {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .esim-rate-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+    }
+    .esim-rate-badge strong { color: var(--text); }
+
+    /* Package grid */
+    .esim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+      gap: 16px;
+    }
+
+    /* Package card */
+    .pkg-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: var(--transition);
+    }
+    .pkg-card:hover {
+      border-color: rgba(47,128,237,0.45);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+    }
+    .pkg-card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pkg-flag { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+    .pkg-loc { flex: 1; min-width: 0; }
+    .pkg-loc-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pkg-name {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pkg-specs {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+    .pkg-spec {
+      padding: 4px 9px;
+      background: rgba(47,128,237,0.08);
+      border: 1px solid rgba(47,128,237,0.15);
+      border-radius: 6px;
+      font-size: 0.77rem;
+      font-weight: 600;
+      color: #7ab0f0;
+    }
+    .pkg-spec.speed {
+      background: rgba(0,180,216,0.08);
+      border-color: rgba(0,180,216,0.15);
+      color: #5ec8dc;
+    }
+    .pkg-footer {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .pkg-price-wrap {}
+    .pkg-price {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+    .pkg-price-currency { font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+    .pkg-price-usd { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+    .pkg-buy-btn {
+      padding: 9px 16px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .pkg-buy-btn:hover { background: #2470d8; transform: scale(1.03); }
+
+    /* States */
+    .esim-loading {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .esim-spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .esim-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .esim-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+    /* ── Pagination ─────────────────────────── */
+    .esim-pagination {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 32px;
+      padding-bottom: 8px;
+    }
+    .esim-pagination button {
+      min-width: 36px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .esim-pagination button:hover:not(:disabled) {
+      background: rgba(47,128,237,0.18);
+      border-color: var(--blue);
+    }
+    .esim-pagination button.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+      font-weight: 600;
+    }
+    .esim-pagination button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .esim-pagination .pg-ellipsis {
+      color: var(--muted);
+      font-size: 0.88rem;
+      padding: 0 4px;
+      line-height: 36px;
+    }
+
+    /* ── Checkout Modal ─────────────────────── */
+    .esim-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .esim-modal-overlay.open { display: flex; }
+    .esim-modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 460px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px;
+      position: relative;
+    }
+    .esim-modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+    .esim-modal-close:hover { color: var(--text); }
+    .daily-preset-btn {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .daily-preset-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .daily-preset-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+    .esim-modal-pkg {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: var(--bg2);
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .esim-modal-pkg-flag { font-size: 2rem; }
+    .esim-modal-pkg-info { flex: 1; }
+    .esim-modal-pkg-name { font-weight: 700; font-size: 0.95rem; }
+    .esim-modal-pkg-specs { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+    .esim-modal-pkg-price { text-align: right; }
+    .esim-modal-pkg-cad { font-weight: 800; font-size: 1.15rem; color: var(--blue); white-space: nowrap; }
+    .esim-modal-pkg-usd { font-size: 0.74rem; color: var(--muted); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 0.92rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .form-input:focus { outline: none; border-color: var(--blue); }
+    .form-input::placeholder { color: var(--muted); }
+    #esim-card-element {
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 14px;
+      transition: border-color 0.2s;
+    }
+    #esim-card-element.StripeElement--focus { border-color: var(--blue); }
+
+    .esim-pay-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .esim-pay-btn:hover:not(:disabled) { background: #2470d8; }
+    .esim-pay-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .pay-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .esim-pay-btn.loading .pay-spinner { display: block; }
+    .esim-pay-btn.loading .pay-text { display: none; }
+    .esim-pay-error {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      color: #f87171;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    /* Success */
+    .esim-success { display: none; text-align: center; padding: 12px 0; }
+    .esim-success-icon { font-size: 3.5rem; margin-bottom: 16px; }
+    .esim-success h3 { margin-bottom: 10px; }
+    .esim-success p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+    .esim-order-num {
+      display: inline-block;
+      margin: 16px 0;
+      padding: 8px 16px;
+      background: rgba(47,128,237,0.1);
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    /* Trust strip */
+    .esim-trust {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 16px 28px 16px;
+    }
+    .esim-trust-item {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .esim-hero { padding: 86px 20px 0; }
+      .esim-filter-bar { padding: 0 16px; }
+      .esim-store { padding: 0 16px 60px; }
+      .filter-select, .sort-select { min-width: 0; font-size: 0.8rem; }
+      .esim-modal { padding: 24px 20px; border-radius: 16px; }
+      .esim-grid { grid-template-columns: 1fr; }
+      .sort-wrap span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────── -->
+<header class="nav-header">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10">
+    </a>
+    <nav class="nav-links">
+      <a href="hosting.html">Hosting</a>
+      <a href="esim.html" class="active">eSIM</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="hosting.html">🌐 Hosting</a>
+    <a href="esim.html">📶 eSIM</a>
+    <a href="shop.html">⚡ Electronics</a>
+    <a href="coding-robotics.html">🤖 Coding & Robotics</a>
+  </nav>
+</header>
+
+<!-- ── HERO ───────────────────────────────────────── -->
+<section class="esim-hero">
+  <h1>
+    <span style="display:block;font-size:clamp(1rem,2.5vw,1.1rem);font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);margin-bottom:10px;">Instant Global Connectivity</span>
+    eSIM Plans<br><span class="gradient-text">190+ Countries</span>
+  </h1>
+  <p>Buy a plan, receive your QR code by email, and be online in minutes. No physical SIM required.</p>
+
+  <div class="esim-search-wrap" style="margin-top:180px;">
+    <div class="esim-search-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </div>
+    <input type="text" class="esim-search" id="esim-search"
+      placeholder="Search country or destination…" autocomplete="off">
+  </div>
+</section>
+
+<!-- Trust strip -->
+<div class="esim-trust">
+  <span class="esim-trust-item">⚡ Instant activation</span>
+  <span class="esim-trust-item">📧 QR code by email</span>
+  <span class="esim-trust-item">🔒 Stripe secure payment</span>
+  <span class="esim-trust-item">📱 Dual SIM compatible</span>
+</div>
+
+<!-- ── FILTER BAR ──────────────────────────────────── -->
+<div class="esim-filter-bar" id="esim-filter-bar">
+
+  <!-- Data filter -->
+  <div class="filter-group">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M1 6h22M1 12h16M1 18h10"/>
+    </svg>
+    <select class="filter-select" id="filter-data">
+      <option value="">Data</option>
+    </select>
+  </div>
+
+  <!-- Duration filter -->
+  <div class="filter-group">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <select class="filter-select" id="filter-duration">
+      <option value="">Duration</option>
+    </select>
+  </div>
+
+  <!-- Region filter -->
+  <div class="filter-group">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+      <path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
+    </svg>
+    <select class="filter-select" id="filter-region">
+      <option value="">Region</option>
+      <option value="Europe">🇪🇺 Europe</option>
+      <option value="Asia">🌏 Asia</option>
+      <option value="Americas">🌎 Americas</option>
+      <option value="Middle East">🕌 Middle East</option>
+      <option value="Africa">🌍 Africa</option>
+      <option value="Oceania">🦘 Oceania</option>
+      <option value="Global">🌐 Global / Multi</option>
+    </select>
+  </div>
+
+  <button class="filter-clear" id="filter-clear">✕ Clear filters</button>
+
+  <div class="filter-spacer"></div>
+
+  <!-- Sort -->
+  <div class="sort-wrap">
+    <span>Sort:</span>
+    <select class="sort-select" id="sort-select">
+      <option value="price-asc">Price ↑</option>
+      <option value="price-desc">Price ↓</option>
+      <option value="az">A → Z</option>
+      <option value="za">Z → A</option>
+      <option value="data-asc">Data ↑</option>
+      <option value="data-desc">Data ↓</option>
+    </select>
+  </div>
+</div>
+
+<!-- ── STORE ──────────────────────────────────────── -->
+<div class="esim-store">
+
+  <!-- Meta bar: results count + rate badge -->
+  <div class="esim-meta-bar">
+    <div class="esim-results-info" id="esim-results-info"></div>
+    <div class="esim-rate-badge" id="esim-rate-badge" style="display:none;">
+      💱 1 USD = <strong id="rate-value">—</strong> CAD
+      <span id="rate-age" style="opacity:0.6;"></span>
+    </div>
+  </div>
+
+  <div class="esim-grid" id="esim-grid">
+    <div class="esim-loading">
+      <div class="esim-spinner"></div>
+      Loading plans…
+    </div>
+  </div>
+
+  <div class="esim-pagination" id="esim-pagination"></div>
+</div>
+
+<!-- ── CHECKOUT MODAL ─────────────────────────────── -->
+<div class="esim-modal-overlay" id="esim-modal-overlay">
+  <div class="esim-modal">
+    <button class="esim-modal-close" id="esim-modal-close">✕</button>
+
+    <!-- Package summary -->
+    <div class="esim-modal-pkg">
+      <div class="esim-modal-pkg-flag" id="modal-flag"></div>
+      <div class="esim-modal-pkg-info">
+        <div class="esim-modal-pkg-name" id="modal-pkg-name"></div>
+        <div class="esim-modal-pkg-specs" id="modal-pkg-specs"></div>
+      </div>
+      <div class="esim-modal-pkg-price">
+        <div class="esim-modal-pkg-cad" id="modal-pkg-cad"></div>
+        <div class="esim-modal-pkg-usd" id="modal-pkg-usd"></div>
+      </div>
+    </div>
+
+    <!-- Daily plan: days selector -->
+    <div id="daily-selector" style="display:none;margin-bottom:20px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--blue);margin-bottom:10px;">⏱️ Daily Plan: Choose Your Duration</div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:12px;">This plan is priced <strong id="daily-per-day-label" style="color:var(--text)"></strong>. Select how many days you need:</div>
+      <!-- Preset buttons -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="daily-presets">
+        <button class="daily-preset-btn active" data-days="1">1 day</button>
+        <button class="daily-preset-btn" data-days="3">3 days</button>
+        <button class="daily-preset-btn" data-days="5">5 days</button>
+        <button class="daily-preset-btn" data-days="7">7 days</button>
+        <button class="daily-preset-btn" data-days="14">14 days</button>
+        <button class="daily-preset-btn" data-days="30">30 days</button>
+      </div>
+      <!-- Custom stepper -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="font-size:0.82rem;color:var(--muted);">Custom:</span>
+        <button onclick="changeDays(-1)" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <input type="number" id="days-input" min="1" max="365" value="1" style="width:60px;text-align:center;padding:6px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:0.95rem;" oninput="setDays(parseInt(this.value)||1)">
+        <button onclick="changeDays(1)" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <span style="font-size:0.82rem;color:var(--muted);">days (max 365)</span>
+      </div>
+      <!-- Total -->
+      <div style="background:var(--card);border:1px solid var(--blue);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+        <span id="daily-total-label" style="font-size:0.85rem;color:var(--muted);"></span>
+        <span id="daily-total-price" style="font-weight:800;font-size:1.1rem;color:var(--blue);"></span>
+      </div>
+    </div>
+
+    <!-- Checkout form -->
+    <div id="checkout-form">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" class="form-input" id="esim-name" placeholder="Jane Smith" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" class="form-input" id="esim-email" placeholder="jane@example.com" autocomplete="email">
+        <div style="font-size:0.77rem;color:var(--muted);margin-top:5px;">Your eSIM QR code will be sent to this address.</div>
+      </div>
+      <div class="form-group">
+        <label>Country</label>
+        <select class="form-input" id="esim-country" autocomplete="country" style="background:var(--card);color:var(--text);">
+          <option value="CA">Canada</option>
+          <option value="US">United States</option>
+          <option value="BR">Brazil</option>
+          <option value="GB">United Kingdom</option>
+          <option value="AU">Australia</option>
+          <option value="FR">France</option>
+          <option value="DE">Germany</option>
+          <option value="PT">Portugal</option>
+          <option value="MX">Mexico</option>
+          <option value="AR">Argentina</option>
+          <option value="JP">Japan</option>
+          <option value="CN">China</option>
+          <option value="IN">India</option>
+          <option value="ZA">South Africa</option>
+          <option value="NG">Nigeria</option>
+          <option value="AE">United Arab Emirates</option>
+          <option value="SG">Singapore</option>
+          <option value="IT">Italy</option>
+          <option value="ES">Spain</option>
+          <option value="NL">Netherlands</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Postal / ZIP Code <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input type="text" class="form-input" id="esim-postal" placeholder="" maxlength="12" autocomplete="postal-code"
+          style="text-transform:uppercase;">
+      </div>
+      <div class="form-group">
+        <label>Card Details</label>
+        <div id="esim-card-element"></div>
+      </div>
+      <div class="esim-pay-error" id="esim-pay-error"></div>
+      <button class="esim-pay-btn" id="esim-pay-btn">
+        <div class="pay-spinner"></div>
+        <span class="pay-text" id="pay-btn-text">Pay &amp; Get eSIM →</span>
+      </button>
+      <p style="text-align:center;font-size:0.75rem;color:var(--muted);margin-top:12px;">
+        🔒 Secured by Stripe · Charged in USD · No physical SIM shipped
+      </p>
+    </div>
+
+    <!-- Success -->
+    <div class="esim-success" id="esim-success">
+      <div class="esim-success-icon">📶</div>
+      <h3>You're all set!</h3>
+      <div class="esim-order-num" id="success-order-num"></div>
+      <p>Your eSIM is being activated. The QR code will arrive in your inbox within a couple of minutes.<br><br>Scan it in <strong>Settings → Cellular → Add eSIM</strong> to connect instantly.</p>
+      <button class="btn btn-secondary" style="margin-top:20px;" onclick="closeModal()">Browse More Plans</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10" class="footer-logo">
+      <p>Hosting, eSIM, and electronics in Canada.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="hosting.html">Web Hosting</a>
+      <a href="esim.html">eSIM Plans</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </div>
+    <div class="footer-col"><h4>Contact</h4><a href="mailto:info@digital10.ca">info@digital10.ca</a></div>
+    <div class="footer-col"></div>
+  </div>
+  <div class="footer-bottom"><p>© 2026 Digital10. All rights reserved.</p></div>
+</footer>
+
+<!-- ── SCRIPTS ────────────────────────────────────── -->
+<script>
+// ── Region map (ISO-2 → region) ──────────────
+const REGION_MAP = {
+  AT:'Europe',BE:'Europe',BG:'Europe',CH:'Europe',CY:'Europe',CZ:'Europe',
+  DE:'Europe',DK:'Europe',EE:'Europe',ES:'Europe',FI:'Europe',FR:'Europe',
+  GB:'Europe',GR:'Europe',HR:'Europe',HU:'Europe',IE:'Europe',IS:'Europe',
+  IT:'Europe',LI:'Europe',LT:'Europe',LU:'Europe',LV:'Europe',MT:'Europe',
+  NL:'Europe',NO:'Europe',PL:'Europe',PT:'Europe',RO:'Europe',SE:'Europe',
+  SI:'Europe',SK:'Europe',AL:'Europe',BA:'Europe',GE:'Europe',ME:'Europe',
+  MK:'Europe',RS:'Europe',TR:'Europe',UA:'Europe',MD:'Europe',AM:'Europe',XK:'Europe',
+  CN:'Asia',JP:'Asia',KR:'Asia',TW:'Asia',HK:'Asia',MO:'Asia',SG:'Asia',
+  MY:'Asia',TH:'Asia',VN:'Asia',PH:'Asia',ID:'Asia',IN:'Asia',LK:'Asia',
+  BD:'Asia',NP:'Asia',PK:'Asia',KZ:'Asia',UZ:'Asia',AZ:'Asia',MN:'Asia',
+  KH:'Asia',LA:'Asia',MM:'Asia',BT:'Asia',
+  US:'Americas',CA:'Americas',MX:'Americas',BR:'Americas',AR:'Americas',
+  CL:'Americas',CO:'Americas',PE:'Americas',VE:'Americas',EC:'Americas',
+  BO:'Americas',PY:'Americas',UY:'Americas',GY:'Americas',CR:'Americas',
+  PA:'Americas',GT:'Americas',HN:'Americas',SV:'Americas',NI:'Americas',
+  DO:'Americas',CU:'Americas',JM:'Americas',TT:'Americas',BB:'Americas',
+  PR:'Americas',BS:'Americas',BZ:'Americas',
+  AE:'Middle East',SA:'Middle East',QA:'Middle East',KW:'Middle East',
+  BH:'Middle East',OM:'Middle East',IL:'Middle East',JO:'Middle East',
+  LB:'Middle East',IQ:'Middle East',IR:'Middle East',YE:'Middle East',
+  ZA:'Africa',NG:'Africa',EG:'Africa',KE:'Africa',GH:'Africa',TZ:'Africa',
+  ET:'Africa',MA:'Africa',TN:'Africa',DZ:'Africa',MU:'Africa',RW:'Africa',
+  SN:'Africa',CI:'Africa',CM:'Africa',UG:'Africa',ZM:'Africa',ZW:'Africa',
+  MG:'Africa',MZ:'Africa',
+  AU:'Oceania',NZ:'Oceania',FJ:'Oceania',PG:'Oceania',WS:'Oceania',
+};
+
+function getRegion(pkg) {
+  if (pkg.isMulti) return 'Global';
+  return REGION_MAP[pkg.locationCode?.toUpperCase()] || 'Global';
+}
+
+// ── State ─────────────────────────────────────
+let allPackages  = [];
+let cadRate      = 1.38;
+let rateUpdated  = null;
+let stripe       = null;
+let cardElement  = null;
+let selectedPkg  = null;
+let selectedDays = 1;
+
+// Active filters
+const filters = { search: '', data: '', duration: '', region: '', sort: 'price-asc' };
+
+// ── Stripe init ───────────────────────────────
+stripe = Stripe('pk_test_51SUXJSK4AglBf7SxrPFOF3IuD6fhNM2uLQMx4QqwHvKPMBrkNQDaob4aHwlB3brW4Q223P6qUadsXUjgLEHlWJGo00RHvvo6X4');
+
+// ── Helpers ───────────────────────────────────
+function esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function cadPrice(usdPrice) {
+  return Math.ceil(usdPrice * cadRate * 100) / 100;
+}
+
+function rateAgeLabel(iso) {
+  if (!iso) return '';
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 2) return '· just now';
+  if (mins < 60) return `· ${mins}m ago`;
+  return `· ${Math.floor(mins/60)}h ago`;
+}
+
+// ── Load packages ─────────────────────────────
+async function loadPackages() {
+  try {
+    const res  = await fetch('/api/esim/packages');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'API error');
+
+    allPackages  = data.packages || [];
+    cadRate      = data.cadRate || 1.38;
+    rateUpdated  = data.rateUpdatedAt || null;
+
+    // Show rate badge
+    const badge = document.getElementById('esim-rate-badge');
+    badge.style.display = 'flex';
+    document.getElementById('rate-value').textContent = cadRate.toFixed(4);
+    document.getElementById('rate-age').textContent   = rateAgeLabel(rateUpdated);
+
+    buildFilterOptions();
+    renderPackages();
+  } catch (err) {
+    document.getElementById('esim-grid').innerHTML = `
+      <div class="esim-empty">
+        <div class="esim-empty-icon">⚠️</div>
+        <p>Could not load plans right now. Please try again shortly.</p>
+        <p style="font-size:0.78rem;margin-top:8px;opacity:0.6;">${esc(err.message)}</p>
+      </div>`;
+  }
+}
+
+// ── Build filter selects from real data ───────
+function buildFilterOptions() {
+  // Data sizes — sorted by GB ascending, Unlimited last
+  const dataSizes = [...new Set(allPackages.map(p => p.data).filter(Boolean))]
+    .sort((a, b) => {
+      if (a === 'Unlimited') return 1;
+      if (b === 'Unlimited') return -1;
+      if (a === 'See plan')  return 1;
+      if (b === 'See plan')  return -1;
+      const na = parseFloat(a), nb = parseFloat(b);
+      const ua = a.includes('MB') ? 0 : 1, ub = b.includes('MB') ? 0 : 1;
+      if (ua !== ub) return ua - ub;
+      return na - nb;
+    });
+
+  const dataSelect = document.getElementById('filter-data');
+  dataSelect.innerHTML = '<option value="">Data</option>' +
+    dataSizes.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+
+  // Durations
+  const durations = [...new Set(allPackages.map(p => p.duration))].sort((a,b) => a - b);
+  const durSelect = document.getElementById('filter-duration');
+  durSelect.innerHTML = '<option value="">Duration</option>' +
+    durations.map(d => `<option value="${d}">${d} day${d !== 1 ? 's' : ''}</option>`).join('');
+}
+
+// ── Pagination state ──────────────────────────
+const PAGE_SIZE = 20;
+let currentPage = 1;
+let lastFiltered = [];
+
+// ── Render ────────────────────────────────────
+function renderPackages(resetPage = true) {
+  if (resetPage) currentPage = 1;
+
+  const q = filters.search.toLowerCase().trim();
+
+  lastFiltered = allPackages.filter(pkg => {
+    if (filters.data     && pkg.data !== filters.data) return false;
+    if (filters.duration && pkg.duration !== parseInt(filters.duration)) return false;
+    if (filters.region   && getRegion(pkg) !== filters.region) return false;
+    if (q) {
+      const haystack = (pkg.locationName + ' ' + pkg.name + ' ' +
+        (pkg.locations||[]).map(l=>l.name).join(' ')).toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // Sort
+  switch (filters.sort) {
+    case 'price-asc':  lastFiltered.sort((a,b) => a.salePriceUSD - b.salePriceUSD); break;
+    case 'price-desc': lastFiltered.sort((a,b) => b.salePriceUSD - a.salePriceUSD); break;
+    case 'az':         lastFiltered.sort((a,b) => a.locationName.localeCompare(b.locationName)); break;
+    case 'za':         lastFiltered.sort((a,b) => b.locationName.localeCompare(a.locationName)); break;
+    case 'data-asc':   lastFiltered.sort((a,b) => (a.dataGB ?? 999) - (b.dataGB ?? 999)); break;
+    case 'data-desc':  lastFiltered.sort((a,b) => (b.dataGB ?? -1)  - (a.dataGB ?? -1));  break;
+  }
+
+  renderPage();
+}
+
+function renderPage() {
+  const totalPages = Math.max(1, Math.ceil(lastFiltered.length / PAGE_SIZE));
+  currentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = lastFiltered.slice(start, start + PAGE_SIZE);
+
+  // Results info
+  const q = filters.search.toLowerCase().trim();
+  const hasFilters = q || filters.data || filters.duration || filters.region;
+  document.getElementById('esim-results-info').textContent =
+    lastFiltered.length > 0
+      ? `${lastFiltered.length} plan${lastFiltered.length !== 1 ? 's' : ''} found`
+      : '';
+
+  document.getElementById('filter-clear').classList.toggle('visible', hasFilters);
+
+  if (lastFiltered.length === 0) {
+    document.getElementById('esim-grid').innerHTML = `
+      <div class="esim-empty">
+        <div class="esim-empty-icon">🔍</div>
+        <p>No plans match your filters.</p>
+        <p style="font-size:0.78rem;margin-top:6px;opacity:0.7;">Try adjusting the data, duration, or region.</p>
+      </div>`;
+    document.getElementById('esim-pagination').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('esim-grid').innerHTML = page.map(pkg => {
+    const cad = cadPrice(pkg.salePriceUSD);
+    const pkgJson = JSON.stringify(pkg).replace(/"/g, '&quot;');
+    return `
+    <div class="pkg-card">
+      <div class="pkg-card-top">
+        <div class="pkg-flag">${pkg.flag}</div>
+        <div class="pkg-loc">
+          <div class="pkg-loc-name">${esc(pkg.locationName)}</div>
+          <div class="pkg-name">${esc(pkg.name)}</div>
+        </div>
+      </div>
+      <div class="pkg-specs">
+        <span class="pkg-spec">${esc(pkg.data)}</span>
+        <span class="pkg-spec">${pkg.duration} day${pkg.duration !== 1 ? 's' : ''}</span>
+        <span class="pkg-spec speed">${esc(pkg.speed)}</span>
+      </div>
+      <div class="pkg-footer">
+        <div class="pkg-price-wrap">
+          <div class="pkg-price">$${cad.toFixed(2)} <span class="pkg-price-currency">CAD</span></div>
+          <div class="pkg-price-usd">≈ $${pkg.salePriceUSD.toFixed(2)} USD</div>
+        </div>
+        <button class="pkg-buy-btn" onclick='openCheckout(${pkgJson})'>Get eSIM</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+  const pg = document.getElementById('esim-pagination');
+  if (totalPages <= 1) { pg.innerHTML = ''; return; }
+
+  // Build page number list with ellipsis
+  const pages = [];
+  const delta = 2;
+  const left  = currentPage - delta;
+  const right = currentPage + delta;
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== '…') {
+      pages.push('…');
+    }
+  }
+
+  let html = `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">‹</button>`;
+
+  pages.forEach(p => {
+    if (p === '…') {
+      html += `<span class="pg-ellipsis">…</span>`;
+    } else {
+      html += `<button class="${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
+    }
+  });
+
+  html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goPage(${currentPage + 1})">›</button>`;
+  pg.innerHTML = html;
+}
+
+function goPage(n) {
+  currentPage = n;
+  renderPage();
+  document.getElementById('esim-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Filter events ─────────────────────────────
+document.getElementById('esim-search').addEventListener('input', e => {
+  filters.search = e.target.value;
+  renderPackages();
+});
+
+['filter-data', 'filter-duration', 'filter-region'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('change', () => {
+    const key = id.replace('filter-', '');
+    filters[key] = el.value;
+    el.classList.toggle('has-value', !!el.value);
+    renderPackages();
+  });
+});
+
+document.getElementById('sort-select').addEventListener('change', e => {
+  filters.sort = e.target.value;
+  renderPackages();
+});
+
+document.getElementById('filter-clear').addEventListener('click', () => {
+  filters.search = ''; filters.data = ''; filters.duration = ''; filters.region = '';
+  document.getElementById('esim-search').value = '';
+  ['filter-data','filter-duration','filter-region'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+    el.classList.remove('has-value');
+  });
+  renderPackages();
+});
+
+// ── Postal code formatter ─────────────────────
+function formatPostal(el) {
+  el.value = el.value.toUpperCase().replace(/[^A-Z0-9 \-]/g, '');
+}
+
+// ── Daily plan helpers ────────────────────────
+function updateDailyTotal() {
+  if (!selectedPkg || !selectedPkg.isDaily) return;
+  const days  = selectedDays;
+  const cadPD = cadPrice(selectedPkg.salePriceUSD);
+  const totalCad = cadPD * days;
+  const totalUsd = selectedPkg.salePriceUSD * days;
+  document.getElementById('daily-total-label').textContent =
+    `$${cadPD.toFixed(2)} CAD/day × ${days} day${days>1?'s':''}`;
+  document.getElementById('daily-total-price').textContent =
+    `$${totalCad.toFixed(2)} CAD`;
+  document.getElementById('modal-pkg-cad').textContent =
+    days > 1 ? `$${totalCad.toFixed(2)} CAD` : `$${cadPD.toFixed(2)} CAD`;
+  document.getElementById('modal-pkg-usd').textContent =
+    `≈ $${totalUsd.toFixed(2)} USD`;
+  document.getElementById('pay-btn-text').textContent =
+    `Pay $${totalCad.toFixed(2)} CAD & Get eSIM →`;
+  // Sync input
+  document.getElementById('days-input').value = days;
+  // Highlight preset
+  document.querySelectorAll('.daily-preset-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.days) === days);
+  });
+}
+
+function setDays(n) {
+  selectedDays = Math.min(Math.max(1, n || 1), 365);
+  updateDailyTotal();
+}
+
+function changeDays(delta) {
+  setDays(selectedDays + delta);
+}
+
+// ── Checkout ──────────────────────────────────
+function openCheckout(pkg) {
+  selectedPkg  = pkg;
+  selectedDays = 1;
+  const cad    = cadPrice(pkg.salePriceUSD);
+
+  document.getElementById('modal-flag').textContent      = pkg.flag;
+  document.getElementById('modal-pkg-name').textContent  = pkg.name;
+  document.getElementById('modal-pkg-specs').textContent =
+    pkg.isDaily
+      ? `${pkg.data} · per day · ${pkg.speed}`
+      : `${pkg.data} · ${pkg.duration} days · ${pkg.speed}`;
+  document.getElementById('modal-pkg-cad').textContent   = `$${cad.toFixed(2)} CAD`;
+  document.getElementById('modal-pkg-usd').textContent   = `≈ $${pkg.salePriceUSD.toFixed(2)} USD`;
+
+  // Daily plan selector
+  const dailySel = document.getElementById('daily-selector');
+  if (pkg.isDaily) {
+    dailySel.style.display = 'block';
+    document.getElementById('daily-per-day-label').textContent =
+      `$${cad.toFixed(2)} CAD / day`;
+    document.getElementById('days-input').value = 1;
+    document.querySelectorAll('.daily-preset-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.days === '1');
+      b.onclick = () => setDays(parseInt(b.dataset.days));
+    });
+    updateDailyTotal();
+    document.getElementById('pay-btn-text').textContent = `Pay $${cad.toFixed(2)} CAD & Get eSIM →`;
+  } else {
+    dailySel.style.display = 'none';
+    document.getElementById('pay-btn-text').textContent = `Pay $${cad.toFixed(2)} CAD & Get eSIM →`;
+  }
+
+  document.getElementById('checkout-form').style.display  = 'block';
+  document.getElementById('esim-success').style.display   = 'none';
+  document.getElementById('esim-pay-error').style.display = 'none';
+  document.getElementById('esim-name').value    = '';
+  document.getElementById('esim-email').value   = '';
+  document.getElementById('esim-postal').value  = '';
+  document.getElementById('esim-country').value = 'CA';
+
+  if (cardElement) cardElement.destroy();
+  const elements = stripe.elements();
+  cardElement = elements.create('card', {
+    style: {
+      base: {
+        color: '#e2eaf4',
+        fontFamily: 'Inter, -apple-system, sans-serif',
+        fontSize: '15px',
+        '::placeholder': { color: '#4a6a8a' },
+        iconColor: '#4a7aa8'
+      },
+      invalid: { color: '#f87171' }
+    }
+  });
+  cardElement.mount('#esim-card-element');
+
+  document.getElementById('esim-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('esim-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  if (cardElement) { cardElement.destroy(); cardElement = null; }
+}
+
+document.getElementById('esim-modal-close').addEventListener('click', closeModal);
+document.getElementById('esim-modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ── Payment ───────────────────────────────────
+document.getElementById('esim-pay-btn').addEventListener('click', async () => {
+  const name   = document.getElementById('esim-name').value.trim();
+  const email  = document.getElementById('esim-email').value.trim();
+  const postal  = document.getElementById('esim-postal').value.trim().toUpperCase();
+  const country = document.getElementById('esim-country').value;
+  const errEl   = document.getElementById('esim-pay-error');
+  errEl.style.display = 'none';
+
+  if (!name)  { showPayError('Please enter your full name.'); return; }
+  if (!email || !email.includes('@')) { showPayError('Please enter a valid email address.'); return; }
+
+  const periodNum = selectedPkg.isDaily ? selectedDays : undefined;
+
+  setPayLoading(true);
+  try {
+    // 1. Create PaymentIntent (charged in USD)
+    const piRes = await fetch('/api/esim/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ packageCode: selectedPkg.packageCode, email, name, periodNum })
+    });
+    const piData = await piRes.json();
+    if (!piRes.ok || !piData.clientSecret) throw new Error(piData.error || 'Failed to start payment.');
+
+    // 2. Confirm card payment
+    const billingDetails = { name, email };
+    const billingAddress = {};
+    if (postal)                    billingAddress.postal_code = postal;
+    if (country && country !== 'OTHER') billingAddress.country = country;
+    if (Object.keys(billingAddress).length) billingDetails.address = billingAddress;
+    const { paymentIntent, error } = await stripe.confirmCardPayment(piData.clientSecret, {
+      payment_method: { card: cardElement, billing_details: billingDetails }
+    });
+    if (error) throw new Error(error.message);
+    if (paymentIntent.status !== 'succeeded') throw new Error('Payment did not complete.');
+
+    // 3. Confirm order
+    const confirmRes = await fetch('/api/esim/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        paymentIntentId: paymentIntent.id,
+        packageCode:     selectedPkg.packageCode,
+        packageName:     piData.packageName || selectedPkg.name,
+        email, name,
+        postal:          postal || undefined,
+        country:         country !== 'OTHER' ? country : undefined,
+        periodNum,
+        amount:          piData.amount
+      })
+    });
+    const confirmData = await confirmRes.json();
+    if (!confirmData.ok) throw new Error(confirmData.error || 'Order confirmation failed.');
+
+    document.getElementById('checkout-form').style.display = 'none';
+    document.getElementById('success-order-num').textContent = confirmData.orderNumber;
+    document.getElementById('esim-success').style.display   = 'block';
+
+  } catch (err) {
+    showPayError(err.message);
+  } finally {
+    setPayLoading(false);
+  }
+});
+
+function showPayError(msg) {
+  const el = document.getElementById('esim-pay-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function setPayLoading(on) {
+  const btn = document.getElementById('esim-pay-btn');
+  btn.disabled = on;
+  btn.classList.toggle('loading', on);
+}
+
+// ── Mobile nav ────────────────────────────────
+document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+  document.getElementById('mobile-nav')?.classList.toggle('open');
+});
+
+// ── Boot ──────────────────────────────────────
+loadPackages();
+</script>
+</body>
+</html>
