@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Policies | Digital10</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180x180.png">
+  <meta name="description" content="Digital10 return, refund, and warranty policies for eSIM plans, electronics, and web hosting.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .policy-hero {
+      padding: 120px 28px 48px;
+      text-align: center;
+    }
+    .policy-hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .policy-hero p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+    .policy-updated {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 5px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .policy-body {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 28px 80px;
+    }
+
+    /* Tab navigation */
+    .policy-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .policy-tab {
+      padding: 10px 18px;
+      border-radius: 10px 10px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      bottom: -1px;
+    }
+    .policy-tab:hover { color: var(--text); }
+    .policy-tab.active {
+      background: var(--card);
+      border-color: var(--border);
+      border-bottom-color: var(--card);
+      color: var(--blue);
+    }
+
+    /* Policy sections */
+    .policy-section { display: none; }
+    .policy-section.active { display: block; }
+
+    .policy-section h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .policy-section .section-lead {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .policy-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 16px;
+    }
+    .policy-block h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+    }
+    .policy-block h3 .block-icon {
+      font-size: 1.1rem;
+    }
+    .policy-block ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .policy-block ul li {
+      font-size: 0.9rem;
+      color: var(--muted);
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.55;
+    }
+    .policy-block ul li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .policy-block ul li strong {
+      color: var(--text);
+    }
+
+    .policy-alert {
+      background: rgba(239,68,68,0.07);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      color: #f87171;
+      margin-bottom: 16px;
+      line-height: 1.55;
+    }
+    .policy-alert strong { color: #fca5a5; }
+
+    .policy-note {
+      background: rgba(47,128,237,0.07);
+      border: 1px solid rgba(47,128,237,0.2);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      color: #7ab0f0;
+      margin-bottom: 16px;
+      line-height: 1.55;
+    }
+    .policy-note strong { color: #a5c8ff; }
+
+    .policy-contact {
+      margin-top: 28px;
+      padding: 20px 24px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .policy-contact a { color: var(--blue); text-decoration: none; }
+    .policy-contact a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .policy-hero { padding: 100px 20px 36px; }
+      .policy-body { padding: 0 16px 60px; }
+      .policy-block { padding: 18px 20px; }
+      .policy-tab { font-size: 0.82rem; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────── -->
+<header class="nav-header">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10">
+    </a>
+    <nav class="nav-links">
+      <a href="hosting.html">Hosting</a>
+      <a href="esim.html">eSIM</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="hosting.html">🌐 Hosting</a>
+    <a href="esim.html">📶 eSIM</a>
+    <a href="shop.html">⚡ Electronics</a>
+    <a href="coding-robotics.html">🤖 Coding & Robotics</a>
+  </nav>
+</header>
+
+<!-- ── HERO ───────────────────────────────────────── -->
+<section class="policy-hero">
+  <h1>Policies &amp; Terms</h1>
+  <p>Clear policies for every product we sell. If you have a question not covered here, reach out — we're happy to help.</p>
+  <span class="policy-updated">Last updated: May 2026</span>
+</section>
+
+<!-- ── CONTENT ────────────────────────────────────── -->
+<div class="policy-body">
+
+  <!-- Tab nav -->
+  <div class="policy-tabs">
+    <button class="policy-tab active" data-tab="esim">📶 eSIM Plans</button>
+    <button class="policy-tab" data-tab="electronics">⚡ Electronics</button>
+    <button class="policy-tab" data-tab="hosting">🌐 Web Hosting</button>
+    <button class="policy-tab" data-tab="general">📋 General</button>
+  </div>
+
+  <!-- ── eSIM Plans ─────────────────────────────── -->
+  <div class="policy-section active" id="tab-esim">
+    <h2>eSIM Plans</h2>
+    <p class="section-lead">eSIM plans are digital products delivered instantly by email. Because activation begins as soon as your QR code is issued, different rules apply compared to physical goods.</p>
+
+    <div class="policy-alert">
+      <strong>No returns or refunds on eSIM plans.</strong> All sales are final once the QR code has been delivered to your email. This applies to all plan types and durations.
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">📧</span> Reporting a Problem</h3>
+      <ul>
+        <li><strong>Contact us while your plan is still active.</strong> Reports made after a plan has expired cannot be investigated or actioned — the window to resolve connectivity issues is while you still have an active subscription.</li>
+        <li>Email <strong>info@digital10.ca</strong> with your order number, the issue you're experiencing, and the country you're in.</li>
+        <li>We will work with our eSIM provider to investigate and, if the problem is on our end, issue a replacement plan or credit at our discretion.</li>
+        <li>Issues caused by your device not supporting eSIM, incorrect activation, or carrier restrictions in your destination are outside our control and do not qualify for compensation.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">📱</span> Before You Buy</h3>
+      <ul>
+        <li>Verify that your device is <strong>eSIM-compatible and unlocked</strong> before purchasing. Most modern iPhones and Android flagships support eSIM — check your device settings.</li>
+        <li>Plans are data-only. Voice calls and SMS are not included unless explicitly stated in the plan description.</li>
+        <li>Coverage and speeds depend on local carrier agreements. Digital10 does not guarantee specific speeds in any country.</li>
+        <li>QR codes are delivered to the email address provided at checkout — double-check your email before completing payment.</li>
+        <li>Prices are charged in <strong>USD</strong> and displayed in CAD at the current exchange rate. Your bank may apply its own conversion fee.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">⏱️</span> Daily Plans</h3>
+      <ul>
+        <li>Daily plans are priced per day. The number of days you select at checkout is what you will be charged for — no automatic renewal.</li>
+        <li>The plan validity period begins upon activation, not upon purchase.</li>
+      </ul>
+    </div>
+
+    <div class="policy-contact">
+      Questions about your eSIM? Email <a href="mailto:info@digital10.ca">info@digital10.ca</a> with your order number and we'll respond within one business day.
+    </div>
+  </div>
+
+  <!-- ── Electronics ────────────────────────────── -->
+  <div class="policy-section" id="tab-electronics">
+    <h2>Electronics</h2>
+    <p class="section-lead">All electronics sold on Digital10 ship from Moncton, NB, Canada. We stand behind the products we carry with a 90-day warranty and a fair return process.</p>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">🔄</span> Returns</h3>
+      <ul>
+        <li>You may return eligible items within <strong>30 days of delivery</strong>.</li>
+        <li>Items must be in <strong>original, unused condition</strong> with all original packaging, accessories, and documentation included.</li>
+        <li>A <strong>30% restocking fee</strong> is deducted from the refund amount to cover handling and restocking costs.</li>
+        <li>Return shipping is the <strong>responsibility of the customer</strong>. We recommend using a tracked service — Digital10 is not responsible for items lost in return transit.</li>
+        <li>Once we receive and inspect the return, your refund (minus the restocking fee) will be processed within 5 business days to your original payment method.</li>
+        <li>Items returned after 30 days or without prior contact will not be accepted.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">🛠️</span> Defective or Incorrect Items</h3>
+      <ul>
+        <li>If your item arrives <strong>defective, damaged, or not as described</strong>, contact us within 30 days of delivery and we will arrange a <strong>full refund or free replacement</strong> — no restocking fee applies.</li>
+        <li>Email <strong>info@digital10.ca</strong> with your order number and a description of the issue. Photos or a short video of the defect help us resolve things faster.</li>
+        <li>We cover return shipping costs for defective or incorrectly shipped items.</li>
+      </ul>
+    </div>
+
+    <div class="policy-note">
+      <strong>How to start a return:</strong> Email <a href="mailto:info@digital10.ca" style="color:var(--blue)">info@digital10.ca</a> before sending anything back. We'll confirm eligibility and give you the return address. Items sent without prior authorization may be refused.
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">🛡️</span> 90-Day Warranty</h3>
+      <ul>
+        <li>All electronics sold on this site carry a <strong>90-day warranty</strong> from the date of purchase against manufacturing defects.</li>
+        <li>During the warranty period, defective items will be repaired, replaced, or refunded at Digital10's discretion.</li>
+        <li>The warranty does <strong>not</strong> cover damage caused by misuse, drops, liquid exposure, unauthorized modification, or normal wear and tear.</li>
+        <li>To make a warranty claim, email <strong>info@digital10.ca</strong> with your order number and a description of the fault.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">🚫</span> Non-Returnable Items</h3>
+      <ul>
+        <li>Items that have been opened, assembled, soldered, or modified are not eligible for the standard return policy.</li>
+        <li>If such an item is defective, the warranty policy still applies.</li>
+      </ul>
+    </div>
+
+    <div class="policy-contact">
+      Need help with a return or warranty claim? Email <a href="mailto:info@digital10.ca">info@digital10.ca</a> — we respond within one business day.
+    </div>
+  </div>
+
+  <!-- ── Web Hosting ─────────────────────────────── -->
+  <div class="policy-section" id="tab-hosting">
+    <h2>Web Hosting</h2>
+    <p class="section-lead">We want you to be confident trying Digital10 hosting. If it's not the right fit, we make it easy to get your money back in the first 30 days.</p>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">💰</span> 30-Day Money-Back Guarantee</h3>
+      <ul>
+        <li>New hosting customers may request a <strong>full refund within 30 days</strong> of purchase — no questions asked.</li>
+        <li>To request a refund, email <strong>info@digital10.ca</strong> with your order number and we'll process it within 3 business days.</li>
+        <li>The 30-day period begins on the date of your initial payment.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">📅</span> After 30 Days</h3>
+      <ul>
+        <li>Hosting fees paid beyond the 30-day window are <strong>non-refundable</strong>. Unused time on your plan is not credited or reimbursed upon cancellation.</li>
+        <li>You may cancel your plan at any time — your service remains active until the end of the paid period.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">⚠️</span> Exceptions</h3>
+      <ul>
+        <li>Accounts suspended or terminated for violations of our acceptable use policy are not eligible for a refund.</li>
+        <li>Renewal payments are not eligible for the 30-day guarantee — only the initial purchase qualifies.</li>
+      </ul>
+    </div>
+
+    <div class="policy-contact">
+      Questions about your hosting plan or billing? Email <a href="mailto:info@digital10.ca">info@digital10.ca</a>.
+    </div>
+  </div>
+
+  <!-- ── General ─────────────────────────────────── -->
+  <div class="policy-section" id="tab-general">
+    <h2>General Terms</h2>
+    <p class="section-lead">Terms that apply across all Digital10 products and services.</p>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">💳</span> Payments</h3>
+      <ul>
+        <li>All payments are processed securely by <strong>Stripe</strong>. Digital10 does not store your card number or payment credentials.</li>
+        <li>Electronics and hosting are priced and charged in <strong>Canadian dollars (CAD)</strong>.</li>
+        <li>eSIM plans are priced in <strong>USD</strong> and a CAD equivalent is shown at checkout based on the current exchange rate. Your bank's exchange rate may differ.</li>
+        <li>Receipts are emailed automatically after each successful payment.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">📦</span> Shipping (Electronics)</h3>
+      <ul>
+        <li>Electronics ship from <strong>Moncton, NB, Canada</strong> via Canada Post.</li>
+        <li>Flat rate shipping: <strong>$10 CAD</strong>. Free on orders over <strong>$60 CAD</strong>.</li>
+        <li>Local pickup in Moncton is available and always free — select at checkout.</li>
+        <li>Digital10 is not responsible for delays caused by Canada Post or customs.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">📝</span> Policy Changes</h3>
+      <ul>
+        <li>Digital10 reserves the right to update these policies at any time. The date at the top of this page reflects the most recent revision.</li>
+        <li>Continued use of our services after a policy update constitutes acceptance of the revised terms.</li>
+      </ul>
+    </div>
+
+    <div class="policy-block">
+      <h3><span class="block-icon">⚖️</span> Governing Law</h3>
+      <ul>
+        <li>These policies are governed by the laws of the <strong>Province of New Brunswick, Canada</strong>.</li>
+        <li>Any disputes will be resolved in good faith. If a resolution cannot be reached, disputes are subject to the jurisdiction of the courts of New Brunswick.</li>
+      </ul>
+    </div>
+
+    <div class="policy-contact">
+      For any questions about these terms, contact us at <a href="mailto:info@digital10.ca">info@digital10.ca</a>. We're a small team and we'll get back to you within one business day.
+    </div>
+  </div>
+
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10" class="footer-logo">
+      <p>Hosting, eSIM, and electronics in Canada.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="hosting.html">Web Hosting</a>
+      <a href="esim.html">eSIM Plans</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="policy.html">Policies &amp; Terms</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <a href="mailto:info@digital10.ca">info@digital10.ca</a>
+    </div>
+  </div>
+  <div class="footer-bottom"><p>© 2026 Digital10. All rights reserved.</p></div>
+</footer>
+
+<script>
+document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+  document.getElementById('mobile-nav')?.classList.toggle('open');
+});
+
+// Tab switching
+document.querySelectorAll('.policy-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.policy-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.policy-section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Open tab from URL hash (e.g. policy.html#electronics)
+const hash = location.hash.replace('#', '');
+if (hash) {
+  const target = document.querySelector(`[data-tab="${hash}"]`);
+  if (target) target.click();
+}
+</script>
+</body>
+</html>

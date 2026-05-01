@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Digital10 Admin</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180x180.png">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -164,6 +168,40 @@
       .field-row { grid-template-columns: 1fr; }
       thead th:nth-child(3), tbody td:nth-child(3) { display: none; }
     }
+
+    /* ── SECTION NAV ── */
+    .snav { display:flex; gap:5px; margin-bottom:24px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:4px; width:fit-content; }
+    .snav-btn { padding:8px 20px; border-radius:9px; font-size:13px; font-weight:700; border:none; cursor:pointer; background:transparent; color:var(--muted); transition:all 0.15s; }
+    .snav-btn.active { background:var(--blue); color:#fff; }
+
+    /* ── INVENTORY ── */
+    .inv-photo { width:60px; height:60px; object-fit:cover; border-radius:8px; border:1.5px solid var(--border); cursor:pointer; transition:border-color 0.15s; background:var(--card2); display:block; }
+    .inv-photo:hover { border-color:var(--blue); }
+    .inv-no-photo { width:60px; height:60px; border-radius:8px; border:2px dashed var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); font-size:22px; background:var(--card2); transition:border-color 0.15s, color 0.15s; flex-shrink:0; }
+    .inv-no-photo:hover { border-color:var(--blue); color:var(--blue); }
+    .inv-input { width:100%; background:var(--card2); border:1.5px solid var(--border); border-radius:8px; padding:7px 10px; color:var(--text); font-size:13px; font-family:inherit; transition:border-color 0.2s; }
+    .inv-input:focus { outline:none; border-color:var(--blue); }
+    .inv-input.dirty { border-color:var(--yellow); }
+    .id-badge { display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:700; background:rgba(47,128,237,0.12); color:var(--blue); font-family:monospace; margin-left:5px; vertical-align:middle; }
+    .btn-save-row { padding:7px 14px; border-radius:8px; font-size:12px; font-weight:700; border:1.5px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+    .btn-save-row:hover { border-color:var(--blue); color:var(--blue); }
+    .btn-save-row.dirty { border-color:var(--yellow); color:var(--yellow); background:rgba(245,158,11,0.08); }
+    .btn-feat { width:34px; height:34px; border-radius:8px; border:1.5px solid var(--border); background:transparent; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+    .btn-feat.on { background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.4); }
+    .stock-warn { color:var(--red); }
+
+    /* ── IMAGE PICKER ── */
+    .img-picker-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(96px,1fr)); gap:8px; max-height:55vh; overflow-y:auto; padding:2px; }
+    .img-cell { position:relative; cursor:pointer; border-radius:8px; overflow:hidden; border:2px solid transparent; transition:border-color 0.15s; aspect-ratio:1; background:var(--card2); }
+    .img-cell:hover { border-color:var(--blue); }
+    .img-cell.selected { border-color:var(--green); }
+    .img-cell img { width:100%; height:100%; object-fit:cover; display:block; }
+    .img-cell .img-check { position:absolute; top:4px; right:4px; background:var(--green); color:#fff; border-radius:50%; width:18px; height:18px; display:none; align-items:center; justify-content:center; font-size:10px; font-weight:900; }
+    .img-cell.selected .img-check { display:flex; }
+    .img-cell-name { font-size:9px; color:var(--muted); text-align:center; padding:3px 4px; background:rgba(7,17,31,0.85); position:absolute; bottom:0; left:0; right:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .upload-zone { border:2px dashed var(--border); border-radius:12px; padding:20px; text-align:center; cursor:pointer; transition:border-color 0.15s, background 0.15s; margin-bottom:14px; }
+    .upload-zone:hover { border-color:var(--blue); background:rgba(47,128,237,0.04); }
+    .upload-zone p { color:var(--muted); font-size:12px; margin-top:6px; }
   </style>
 </head>
 <body>
@@ -190,6 +228,12 @@
   </div>
 
   <div class="main">
+    <div class="snav">
+      <button class="snav-btn active" data-section="orders"    onclick="showSection('orders')">📦 Orders</button>
+      <button class="snav-btn"        data-section="inventory" onclick="showSection('inventory')">🗄 Inventory</button>
+    </div>
+
+    <div id="section-orders">
     <!-- Stats -->
     <div class="stats-grid" id="stats-grid">
       <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value blue" id="stat-revenue">—</div></div>
@@ -241,6 +285,63 @@
         </thead>
         <tbody id="orders-tbody"></tbody>
       </table>
+    </div>
+    </div><!-- /section-orders -->
+
+    <!-- INVENTORY SECTION -->
+    <div id="section-inventory" style="display:none">
+      <div class="toolbar" style="margin-bottom:16px;">
+        <input class="search-input" type="search" id="inv-search" placeholder="Search by name or category…" oninput="renderInventory()">
+        <button class="export-btn" onclick="loadInventory()">↻ Refresh</button>
+        <label class="export-btn" style="border-color:var(--blue);color:var(--blue);cursor:pointer;" title="Upload photos to your library">
+          ⬆ Upload Photos
+          <input type="file" id="inv-upload-input" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="display:none" onchange="uploadPhotos(this)">
+        </label>
+      </div>
+      <div id="inv-summary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;font-size:12px;color:var(--muted);"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:76px;">Photo</th>
+              <th>Product</th>
+              <th style="width:150px;">Category</th>
+              <th style="width:110px;">Price (CAD)</th>
+              <th style="width:82px;">Stock</th>
+              <th style="width:56px;text-align:center;">⭐</th>
+              <th style="width:88px;text-align:center;">Save</th>
+            </tr>
+          </thead>
+          <tbody id="inv-tbody">
+            <tr><td colspan="7"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /section-inventory -->
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- IMAGE PICKER MODAL -->
+<div class="modal-overlay" id="img-picker-overlay" onclick="if(event.target===this)closeImagePicker()">
+  <div class="modal" style="max-width:740px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-header-sub">Assign Photo</div>
+        <h3 id="img-picker-title">Choose Photo</h3>
+      </div>
+      <button class="modal-close" onclick="closeImagePicker()">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="upload-zone" for="img-picker-upload">
+        <div style="font-size:28px;">📁</div>
+        <p>Click to upload new photos — or drag & drop</p>
+        <input type="file" id="img-picker-upload" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="display:none" onchange="uploadPhotos(this, true)">
+      </label>
+      <input class="search-input" type="search" id="img-picker-search" placeholder="Filter images by filename…" oninput="renderImageGrid()" style="width:100%;margin-bottom:14px;">
+      <div class="img-picker-grid" id="img-picker-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted);">Loading images…</div>
+      </div>
     </div>
   </div>
 </div>
@@ -692,6 +793,234 @@
   // ── EXPORT CSV ───────────────────────────────
   function exportCSV() {
     window.location.href = `/api/admin/export?token=${encodeURIComponent(adminToken)}`;
+  }
+
+  // ── SECTION SWITCHER ─────────────────────────
+  function showSection(name) {
+    document.getElementById('section-orders').style.display    = name === 'orders'    ? 'block' : 'none';
+    document.getElementById('section-inventory').style.display = name === 'inventory' ? 'block' : 'none';
+    document.querySelectorAll('.snav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === name));
+    if (name === 'inventory' && allInventory.length === 0) loadInventory();
+  }
+
+  // ── INVENTORY DATA ────────────────────────────
+  let allInventory = [];
+  let dirtyRows    = new Set();
+
+  async function loadInventory() {
+    document.getElementById('inv-tbody').innerHTML =
+      '<tr><td colspan="7"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></td></tr>';
+    try {
+      const r = await fetch('/api/admin/inventory', { headers: adminHeaders() });
+      if (r.status === 401) { doLogout(); return; }
+      allInventory = await r.json();
+      dirtyRows.clear();
+      renderInventory();
+    } catch { showToast('❌ Could not load inventory.'); }
+  }
+
+  function renderInventory() {
+    const tbody = document.getElementById('inv-tbody');
+    const q = (document.getElementById('inv-search')?.value || '').toLowerCase();
+    let products = allInventory;
+    if (q) products = products.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+
+    // Summary bar
+    const sumEl = document.getElementById('inv-summary');
+    if (sumEl) {
+      const lowStock  = allInventory.filter(p => p.qty > 0 && p.qty <= 3).length;
+      const outStock  = allInventory.filter(p => p.qty === 0).length;
+      const featured  = allInventory.filter(p => p.featured).length;
+      sumEl.innerHTML = [
+        `<span>${allInventory.length} products</span>`,
+        lowStock ? `<span style="color:var(--yellow);">⚠ ${lowStock} low stock</span>` : '',
+        outStock ? `<span style="color:var(--red);">✕ ${outStock} out of stock</span>` : '',
+        `<span style="color:var(--muted);">⭐ ${featured} featured</span>`
+      ].filter(Boolean).map(s => `<span style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px 10px;">${s}</span>`).join('');
+    }
+
+    if (products.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div>📦</div><p>No products found</p></div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = products.map(p => {
+      const dirty  = dirtyRows.has(p.id);
+      const isLow  = p.qty > 0 && p.qty <= 3;
+      const isOut  = p.qty === 0;
+      const photoEl = p.image
+        ? `<img class="inv-photo" src="${esc(p.image)}" onclick="openImagePicker(${p.id})" title="Click to change photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">\
+<div class="inv-no-photo" onclick="openImagePicker(${p.id})" style="display:none" title="Click to assign photo">📷</div>`
+        : `<div class="inv-no-photo" onclick="openImagePicker(${p.id})" title="Click to assign photo">📷</div>`;
+
+      return `<tr id="inv-row-${p.id}">
+        <td style="padding:10px 12px;">${photoEl}</td>
+        <td style="padding:10px 12px;">
+          <div style="font-weight:600;font-size:13px;line-height:1.3;">${esc(p.name)}</div>
+          <span class="id-badge">#${p.id}</span>
+          ${p.condition && p.condition !== 'New' ? `<span style="font-size:10px;color:var(--yellow);margin-left:4px;">${esc(p.condition)}</span>` : ''}
+        </td>
+        <td style="padding:10px 12px;color:var(--muted);font-size:12px;">${esc(p.category)}</td>
+        <td style="padding:10px 12px;">
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="color:var(--muted);font-size:12px;">$</span>
+            <input class="inv-input${dirty?' dirty':''}" id="price-${p.id}" type="number" step="0.01" min="0.01" value="${p.price.toFixed(2)}"
+              onchange="markDirty(${p.id})" style="width:76px;">
+          </div>
+        </td>
+        <td style="padding:10px 12px;">
+          <input class="inv-input${dirty?' dirty':''}${isOut?' stock-warn':''}" id="qty-${p.id}" type="number" min="0" step="1" value="${p.qty}"
+            onchange="markDirty(${p.id})"
+            style="width:66px;${isLow?'color:var(--yellow);':''}${isOut?'color:var(--red);':''}">
+        </td>
+        <td style="padding:10px 12px;text-align:center;">
+          <button class="btn-feat${p.featured?' on':''}" id="feat-${p.id}" onclick="toggleFeatured(${p.id})"
+            title="${p.featured?'Remove from featured':'Mark as featured'}">${p.featured?'⭐':'☆'}</button>
+        </td>
+        <td style="padding:10px 12px;text-align:center;">
+          <button class="btn-save-row${dirty?' dirty':''}" id="save-btn-${p.id}" onclick="saveProduct(${p.id})">
+            ${dirty?'💾 Save':'Saved'}
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function markDirty(id) {
+    dirtyRows.add(id);
+    const btn = document.getElementById(`save-btn-${id}`);
+    if (btn) { btn.classList.add('dirty'); btn.textContent = '💾 Save'; }
+    document.getElementById(`price-${id}`)?.classList.add('dirty');
+    document.getElementById(`qty-${id}`)?.classList.add('dirty');
+  }
+
+  function toggleFeatured(id) {
+    const p = allInventory.find(x => x.id === id);
+    if (!p) return;
+    p.featured = !p.featured;
+    const btn = document.getElementById(`feat-${id}`);
+    if (btn) { btn.textContent = p.featured ? '⭐' : '☆'; btn.classList.toggle('on', p.featured); }
+    markDirty(id);
+  }
+
+  async function saveProduct(id) {
+    const p = allInventory.find(x => x.id === id);
+    if (!p) return;
+    const priceEl = document.getElementById(`price-${id}`);
+    const qtyEl   = document.getElementById(`qty-${id}`);
+    const btn     = document.getElementById(`save-btn-${id}`);
+    const price = parseFloat(priceEl?.value);
+    const qty   = parseInt(qtyEl?.value);
+    if (isNaN(price) || price <= 0) { showToast('❌ Invalid price.'); return; }
+    if (btn) { btn.textContent = '⏳'; btn.classList.remove('dirty'); btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; }
+    try {
+      const r = await fetch(`/api/admin/inventory/${id}`, {
+        method: 'PATCH', headers: adminHeaders(),
+        body: JSON.stringify({ price, qty, image: p.image, featured: p.featured })
+      });
+      if (!r.ok) throw new Error((await r.json()).error);
+      const updated = await r.json();
+      const idx = allInventory.findIndex(x => x.id === id);
+      if (idx !== -1) allInventory[idx] = updated;
+      dirtyRows.delete(id);
+      [priceEl, qtyEl].forEach(el => el?.classList.remove('dirty'));
+      if (btn) { btn.textContent = '✓ Saved'; btn.style.opacity = ''; btn.style.pointerEvents = ''; }
+      setTimeout(() => { if (btn?.textContent === '✓ Saved') btn.textContent = 'Saved'; }, 2000);
+      showToast(`✅ ${updated.name} saved.`);
+      renderInventory();
+    } catch (err) {
+      if (btn) { btn.classList.add('dirty'); btn.textContent = '💾 Save'; btn.style.opacity = ''; btn.style.pointerEvents = ''; }
+      showToast('❌ ' + err.message);
+    }
+  }
+
+  // ── IMAGE PICKER ──────────────────────────────
+  let allImages = [];
+  let currentPickerProductId = null;
+
+  async function openImagePicker(productId) {
+    currentPickerProductId = productId;
+    const p = allInventory.find(x => x.id === productId);
+    document.getElementById('img-picker-title').textContent = p ? p.name : 'Choose Photo';
+    document.getElementById('img-picker-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (allImages.length === 0) await refreshImageList();
+    renderImageGrid();
+  }
+
+  function closeImagePicker() {
+    document.getElementById('img-picker-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+    currentPickerProductId = null;
+  }
+
+  async function refreshImageList() {
+    try {
+      const r = await fetch('/api/admin/inventory/images', { headers: adminHeaders() });
+      allImages = await r.json();
+    } catch { allImages = []; }
+  }
+
+  function renderImageGrid() {
+    const q    = (document.getElementById('img-picker-search')?.value || '').toLowerCase();
+    const grid = document.getElementById('img-picker-grid');
+    const p    = allInventory.find(x => x.id === currentPickerProductId);
+    const cur  = p?.image || '';
+    let imgs   = allImages;
+    if (q) imgs = imgs.filter(u => u.toLowerCase().includes(q));
+
+    if (imgs.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">
+        No images yet. Upload some photos using the button above.</div>`;
+      return;
+    }
+    grid.innerHTML = imgs.map(url => {
+      const name = url.split('/').pop();
+      const sel  = url === cur;
+      return `<div class="img-cell${sel?' selected':''}" onclick="selectImage('${esc(url)}')">
+        <img src="${esc(url)}" loading="lazy" alt="${esc(name)}">
+        <div class="img-check">✓</div>
+        <div class="img-cell-name">${esc(name)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function selectImage(url) {
+    if (currentPickerProductId === null) return;
+    const p = allInventory.find(x => x.id === currentPickerProductId);
+    if (!p) return;
+    p.image = url;
+    markDirty(currentPickerProductId);
+    const row = document.getElementById(`inv-row-${currentPickerProductId}`);
+    if (row) {
+      const td = row.querySelector('td:first-child');
+      if (td) td.innerHTML = `<img class="inv-photo" src="${esc(url)}" onclick="openImagePicker(${currentPickerProductId})" title="Click to change photo"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="inv-no-photo" onclick="openImagePicker(${currentPickerProductId})" style="display:none">📷</div>`;
+    }
+    closeImagePicker();
+    showToast('📷 Photo assigned — click 💾 Save to confirm.');
+  }
+
+  async function uploadPhotos(input, fromPicker = false) {
+    if (!input.files?.length) return;
+    const files = [...input.files];
+    showToast(`⏳ Uploading ${files.length} photo${files.length > 1 ? 's' : ''}…`);
+    const formData = new FormData();
+    files.forEach(f => formData.append('images', f));
+    try {
+      const r = await fetch('/api/admin/inventory/upload-image', {
+        method: 'POST',
+        headers: { 'x-admin-token': adminToken },
+        body: formData
+      });
+      if (!r.ok) throw new Error((await r.json()).error);
+      const { urls } = await r.json();
+      allImages = [...urls, ...allImages];
+      showToast(`✅ ${urls.length} photo${urls.length > 1 ? 's' : ''} uploaded!`);
+      if (fromPicker) renderImageGrid();
+    } catch (err) { showToast('❌ Upload failed: ' + err.message); }
+    input.value = '';
   }
 
   // ── HELPERS ──────────────────────────────────

@@ -169,8 +169,14 @@ const INVENTORY = [
   {id:138,name:"Crimp Terminal Yellow — Faston Male (10-pack)",category:"Cables & Connectors",description:"Yellow insulated male Faston terminal for 12–10 AWG wire. High-current quick-disconnect connection. Pack of 10.",price:1.99,qty:1,image:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Crimpverbindung.jpg/320px-Crimpverbindung.jpg",condition:"New",featured:false}
 ];
 
-function loadProducts() {
-  allProducts = INVENTORY;
+async function loadProducts() {
+  try {
+    const r = await fetch('/api/inventory');
+    if (r.ok) allProducts = await r.json();
+    else allProducts = INVENTORY;
+  } catch {
+    allProducts = INVENTORY;
+  }
   initShop();
 }
 

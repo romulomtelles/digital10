@@ -9,6 +9,21 @@ const fs        = require('fs');
 const stripe    = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const nodemailer = require('nodemailer');
 const QRCode    = require('qrcode');
+const multer    = require('multer');
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: path.join(__dirname, 'images/Products'),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+      cb(null, `upload-${Date.now()}-${Math.random().toString(36).slice(2,6)}${ext}`);
+    }
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    /\.(jpe?g|png|gif|webp)$/i.test(file.originalname) ? cb(null, true) : cb(new Error('Images only.'));
+  }
+});
 
 const app  = express();
 const PORT = process.env.PORT || 8080;
@@ -29,12 +44,20 @@ function saveOrders(orders) {
 function requireAdmin(req, res, next) {
   const token = req.headers['x-admin-token'];
   const pwd   = process.env.ADMIN_PASSWORD;
-  if (!pwd || token === pwd) return next();
+  if (pwd && token === pwd) return next();
   res.status(401).json({ error: 'Unauthorized.' });
 }
 
 // ── Middleware ──────────────────────────────
 app.use(express.json());
+
+// Block sensitive files from static serving
+app.use((req, res, next) => {
+  const blocked = ['/orders.json', '/server.js'];
+  if (blocked.includes(req.path)) return res.status(403).end();
+  next();
+});
+
 app.use(express.static(path.join(__dirname)));
 
 // ── Health ──────────────────────────────────
@@ -49,37 +72,52 @@ app.get('/api/health', (req, res) => {
 // ── Create PaymentIntent ─────────────────────
 app.post('/api/create-payment-intent', async (req, res) => {
   try {
-    const { cart, email, name, postal } = req.body;
+    const { cart, email, name, postal, shippingMethod } = req.body;
     if (!cart || cart.length === 0) return res.status(400).json({ error: 'Cart is empty.' });
     if (!email || !name) return res.status(400).json({ error: 'Name and email are required.' });
+    if (!['canada_post', 'pickup'].includes(shippingMethod)) {
+      return res.status(400).json({ error: 'Please select a delivery method.' });
+    }
 
-    const amountCents = cart.reduce((sum, item) => {
-      const price = Math.round(parseFloat(item.price) * 100);
-      const qty   = Math.max(1, parseInt(item.qty) || 1);
-      return sum + price * qty;
-    }, 0);
+    // Look up prices from authoritative server-side catalog — never trust client prices
+    const inventory = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/inventory.json'), 'utf8'));
+    let subtotalCents = 0;
+    const verifiedItems = [];
+    for (const item of cart) {
+      const product = inventory.find(p => p.id === item.id);
+      if (!product) return res.status(400).json({ error: `Product not found: ${item.id}` });
+      const qty = Math.max(1, parseInt(item.qty) || 1);
+      subtotalCents += Math.round(product.price * 100) * qty;
+      verifiedItems.push({ name: product.name, qty, price: product.price });
+    }
 
-    if (amountCents < 50) return res.status(400).json({ error: 'Order total is too low.' });
+    if (subtotalCents < 50) return res.status(400).json({ error: 'Order total is too low.' });
 
-    const itemsSummary = cart
+    const FREE_SHIPPING_THRESHOLD = 6000; // $60.00 CAD in cents
+    const shippingCents = (shippingMethod === 'canada_post' && subtotalCents < FREE_SHIPPING_THRESHOLD) ? 1000 : 0;
+    const totalCents = subtotalCents + shippingCents;
+
+    const itemsSummary = verifiedItems
       .map(i => `${i.name} x${i.qty} ($${(i.price * i.qty).toFixed(2)})`)
       .join(', ');
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount:        amountCents,
+      amount:        totalCents,
       currency:      'cad',
       receipt_email: email,
       description:   `Digital10 Order — ${cart.length} item(s)`,
       metadata: {
-        customer_name: name,
-        postal_code:   postal || '',
-        item_count:    cart.length,
-        items:         itemsSummary.substring(0, 500)
+        customer_name:   name,
+        postal_code:     postal || '',
+        item_count:      cart.length,
+        items:           itemsSummary.substring(0, 500),
+        shipping_method: shippingMethod,
+        shipping_cost:   (shippingCents / 100).toFixed(2)
       }
     });
 
-    console.log(`[Stripe] PaymentIntent created: ${paymentIntent.id} — $${(amountCents/100).toFixed(2)} CAD for ${email}`);
-    res.json({ clientSecret: paymentIntent.client_secret });
+    console.log(`[Stripe] PaymentIntent created: ${paymentIntent.id} — $${(totalCents/100).toFixed(2)} CAD (${shippingMethod}, shipping $${(shippingCents/100).toFixed(2)}) for ${email}`);
+    res.json({ clientSecret: paymentIntent.client_secret, subtotal: subtotalCents/100, shippingCost: shippingCents/100, total: totalCents/100 });
 
   } catch (err) {
     console.error('[Stripe error]', err.message);
@@ -90,7 +128,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
 // ── Confirm & Save Order (called by frontend after payment succeeds) ──
 app.post('/api/orders/confirm', async (req, res) => {
   try {
-    const { paymentIntentId, cart, email, name, postal, total } = req.body;
+    const { paymentIntentId, cart, email, name, postal, total, shippingMethod, shippingCost } = req.body;
     if (!paymentIntentId) return res.status(400).json({ error: 'Missing payment ID.' });
 
     // Verify payment actually succeeded with Stripe
@@ -112,6 +150,11 @@ app.post('/api/orders/confirm', async (req, res) => {
       customer:    { name, email, postal },
       items:       cart || [],
       total:       parseFloat(total) || 0,
+      shipping: {
+        method: shippingMethod || 'unknown',
+        cost:   parseFloat(shippingCost) || 0,
+        label:  shippingMethod === 'pickup' ? 'Pickup — Moncton, NB' : 'Canada Post'
+      },
       status:      'pending',   // pending | shipped | delivered | cancelled
       tracking:    null,
       carrier:     null,
@@ -138,7 +181,7 @@ app.post('/api/orders/confirm', async (req, res) => {
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   const pwd = process.env.ADMIN_PASSWORD;
-  if (!pwd || password === pwd) {
+  if (pwd && password === pwd) {
     res.json({ ok: true });
   } else {
     res.status(401).json({ error: 'Incorrect password.' });
@@ -385,6 +428,67 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
   }
 
   res.sendStatus(200);
+});
+
+// ═══════════════════════════════════════════════
+//  INVENTORY MANAGEMENT
+// ═══════════════════════════════════════════════
+
+const INVENTORY_FILE = path.join(__dirname, 'data/inventory.json');
+function readInventory() { return JSON.parse(fs.readFileSync(INVENTORY_FILE, 'utf8')); }
+function writeInventory(data) { fs.writeFileSync(INVENTORY_FILE, JSON.stringify(data, null, 2)); }
+
+// Public — shop frontend fetches prices/images from here
+app.get('/api/inventory', (req, res) => {
+  try { res.json(readInventory()); }
+  catch { res.status(500).json({ error: 'Could not load inventory.' }); }
+});
+
+app.get('/api/admin/inventory', requireAdmin, (req, res) => {
+  try { res.json(readInventory()); }
+  catch { res.status(500).json({ error: 'Could not load inventory.' }); }
+});
+
+app.patch('/api/admin/inventory/:id', requireAdmin, (req, res) => {
+  try {
+    const inv = readInventory();
+    const idx = inv.findIndex(p => p.id === parseInt(req.params.id));
+    if (idx === -1) return res.status(404).json({ error: 'Product not found.' });
+    const { price, qty, image, featured } = req.body;
+    if (price    !== undefined) inv[idx].price    = Math.round(parseFloat(price) * 100) / 100;
+    if (qty      !== undefined) inv[idx].qty      = Math.max(0, parseInt(qty) || 0);
+    if (image    !== undefined) inv[idx].image    = image;
+    if (featured !== undefined) inv[idx].featured = !!featured;
+    writeInventory(inv);
+    console.log(`[Inventory] Product #${req.params.id} (${inv[idx].name}) updated`);
+    res.json(inv[idx]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/inventory/images', requireAdmin, (req, res) => {
+  const imgDir = path.join(__dirname, 'images/Products');
+  function walk(dir, base) {
+    const out = [];
+    try {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const rel = base ? `${base}/${e.name}` : e.name;
+        if (e.isDirectory()) out.push(...walk(path.join(dir, e.name), rel));
+        else if (/\.(jpe?g|png|gif|webp)$/i.test(e.name)) out.push(`/images/Products/${rel}`);
+      }
+    } catch {}
+    return out;
+  }
+  res.json(walk(imgDir, ''));
+});
+
+app.post('/api/admin/inventory/upload-image', requireAdmin, (req, res) => {
+  upload.array('images', 20)(req, res, err => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (!req.files?.length) return res.status(400).json({ error: 'No files uploaded.' });
+    const urls = req.files.map(f => `/images/Products/${f.filename}`);
+    console.log(`[Inventory] Uploaded ${urls.length} image(s)`);
+    res.json({ urls });
+  });
 });
 
 // ═══════════════════════════════════════════════

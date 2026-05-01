@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Global eSIM Plans | Digital10</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180x180.png">
   <meta name="description" content="Instant eSIM data plans for 190+ countries. Buy online, receive QR code by email, activate in minutes.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -617,6 +621,7 @@
     </svg>
     <select class="filter-select" id="filter-region">
       <option value="">Region</option>
+      <option value="North America">🇺🇸 North America</option>
       <option value="Europe">🇪🇺 Europe</option>
       <option value="Asia">🌏 Asia</option>
       <option value="Americas">🌎 Americas</option>
@@ -795,7 +800,11 @@
       <a href="coding-robotics.html">Coding & Robotics</a>
     </div>
     <div class="footer-col"><h4>Contact</h4><a href="mailto:info@digital10.ca">info@digital10.ca</a></div>
-    <div class="footer-col"></div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="policy.html">Policies &amp; Terms</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
   </div>
   <div class="footer-bottom"><p>© 2026 Digital10. All rights reserved.</p></div>
 </footer>
@@ -815,7 +824,8 @@ const REGION_MAP = {
   MY:'Asia',TH:'Asia',VN:'Asia',PH:'Asia',ID:'Asia',IN:'Asia',LK:'Asia',
   BD:'Asia',NP:'Asia',PK:'Asia',KZ:'Asia',UZ:'Asia',AZ:'Asia',MN:'Asia',
   KH:'Asia',LA:'Asia',MM:'Asia',BT:'Asia',
-  US:'Americas',CA:'Americas',MX:'Americas',BR:'Americas',AR:'Americas',
+  US:'North America',CA:'North America',MX:'North America',
+  BR:'Americas',AR:'Americas',
   CL:'Americas',CO:'Americas',PE:'Americas',VE:'Americas',EC:'Americas',
   BO:'Americas',PY:'Americas',UY:'Americas',GY:'Americas',CR:'Americas',
   PA:'Americas',GT:'Americas',HN:'Americas',SV:'Americas',NI:'Americas',
@@ -849,7 +859,7 @@ let selectedDays = 1;
 const filters = { search: '', data: '', duration: '', region: '', sort: 'price-asc' };
 
 // ── Stripe init ───────────────────────────────
-stripe = Stripe('pk_test_51SUXJSK4AglBf7SxrPFOF3IuD6fhNM2uLQMx4QqwHvKPMBrkNQDaob4aHwlB3brW4Q223P6qUadsXUjgLEHlWJGo00RHvvo6X4');
+stripe = Stripe('pk_live_51SUXJDKIxVZUJGTSahIYUgaZUTbIXocb3UMChxShQmDMWNdwZCXHZMECc08ewgJ85k45W1N22ZQvWNW0PXthtnZ900xPY2RaIt');
 
 // ── Helpers ───────────────────────────────────
 function esc(s) {
@@ -1284,6 +1294,12 @@ document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
 });
 
 // ── Boot ──────────────────────────────────────
+filters.region = 'North America';
+const _regionEl = document.getElementById('filter-region');
+_regionEl.value = 'North America';
+_regionEl.classList.add('has-value');
+document.getElementById('filter-clear').classList.add('visible');
+
 loadPackages();
 </script>
 </body>

@@ -3,9 +3,11 @@
    ============================ */
 
 // ── STRIPE CONFIG ────────────────────────────────────────
-const STRIPE_KEY = 'pk_test_51SUXJSK4AglBf7SxrPFOF3IuD6fhNM2uLQMx4QqwHvKPMBrkNQDaob4aHwlB3brW4Q223P6qUadsXUjgLEHlWJGo00RHvvo6X4';
+const STRIPE_KEY = 
+'pk_live_51SUXJDKIxVZUJGTSahIYUgaZUTbIXocb3UMChxShQmDMWNdwZCXHZMECc08ewgJ85k45W1N22ZQvWNW0PXthtnZ900xPY2RaIt';
 let stripeInstance = null;
 let stripeCard = null;
+let selectedShipping = '';
 
 function getStripe() {
   if (!stripeInstance) stripeInstance = Stripe(STRIPE_KEY);
@@ -145,6 +147,9 @@ function injectCheckoutModal() {
         <!-- Order Summary -->
         <div id="stripe-summary" style="padding:20px 28px;border-bottom:1px solid #1e3a5f;"></div>
 
+        <!-- Delivery Method -->
+        <div id="stripe-shipping" style="padding:16px 28px;border-bottom:1px solid #1e3a5f;"></div>
+
         <!-- Payment Form -->
         <div id="stripe-payment-form" style="padding:24px 28px;">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
@@ -206,15 +211,6 @@ function injectCheckoutModal() {
             </div>
           </div>
 
-          <!-- Test card hint -->
-          <div style="
-            background:rgba(47,128,237,0.08);border:1px solid rgba(47,128,237,0.2);
-            border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:0.78rem;color:#7a9bbf;">
-            🧪 <strong style="color:#2f80ed;">Sandbox mode</strong> — Use test card:
-            <code style="background:#0a1929;padding:2px 6px;border-radius:4px;color:#e2eaf4;">4242 4242 4242 4242</code>
-            &nbsp;·&nbsp; Any future date &nbsp;·&nbsp; Any 3-digit CVC
-          </div>
-
           <button id="stripe-pay-btn" onclick="submitStripePayment()" style="
             width:100%;padding:14px;border-radius:12px;
             background:#2f80ed;color:#fff;font-size:1rem;font-weight:700;
@@ -265,23 +261,20 @@ function openCheckout() {
   // Render order summary
   const summary = document.getElementById('stripe-summary');
   if (summary) {
-    const total = cartTotal();
     summary.innerHTML = `
       <div style="font-size:0.78rem;font-weight:700;color:#7a9bbf;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Order Summary</div>
       ${cart.map(item => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:0.88rem;color:#e2eaf4;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:0.88rem;color:#e2eaf4;">
           <span style="flex:1;margin-right:12px;">${item.name} <span style="color:#7a9bbf;">×${item.qty}</span></span>
           <span style="font-weight:600;">$${(item.price * item.qty).toFixed(2)}</span>
         </div>`).join('')}
-      <div style="border-top:1px solid #1e3a5f;margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;font-size:1rem;font-weight:800;">
-        <span>Total</span>
-        <span style="color:#2f80ed;">$${total.toFixed(2)} CAD</span>
-      </div>`;
+      <div id="checkout-total-line" style="margin-top:8px;"></div>`;
   }
 
-  // Update pay button label
-  const payLabel = document.getElementById('stripe-pay-label');
-  if (payLabel) payLabel.textContent = `Pay $${cartTotal().toFixed(2)} CAD`;
+  // Render shipping options and totals
+  selectedShipping = '';
+  renderShippingOptions();
+  updateCheckoutTotals();
 
   // Show overlay
   const overlay = document.getElementById('stripe-overlay');
@@ -369,11 +362,98 @@ function closeCheckout(clearCart = false) {
       const form = document.getElementById('stripe-payment-form');
       const success = document.getElementById('stripe-success');
       const summary = document.getElementById('stripe-summary');
+      const shippingDiv = document.getElementById('stripe-shipping');
       if (form) form.style.display = 'block';
       if (success) success.style.display = 'none';
       if (summary) summary.style.display = 'block';
+      if (shippingDiv) shippingDiv.style.display = 'block';
     }, 400);
   }
+}
+
+// ── SHIPPING ─────────────────────────────────────────────
+function getShippingCost(method, subtotal) {
+  if (method === 'pickup') return 0;
+  if (method === 'canada_post') return subtotal >= 60.00 ? 0 : 10.00;
+  return 0;
+}
+
+function renderShippingOptions() {
+  const el = document.getElementById('stripe-shipping');
+  if (!el) return;
+  const subtotal = cartTotal();
+  const freeShipping = subtotal >= 60.00;
+  const cpCost = freeShipping ? 0 : 10.00;
+  const dot = (sel) => `<div style="width:18px;height:18px;border-radius:50%;border:2px solid ${sel?'#2f80ed':'#4a6a8a'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${sel?'<div style="width:8px;height:8px;border-radius:50%;background:#2f80ed;"></div>':''}</div>`;
+
+  el.innerHTML = `
+    <div style="font-size:0.78rem;font-weight:700;color:#7a9bbf;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Delivery Method</div>
+    ${freeShipping ? '<div style="font-size:0.75rem;color:#22c55e;margin-bottom:10px;font-weight:600;">🎉 Your order qualifies for free Canada Post shipping!</div>' : ''}
+    <div style="display:flex;flex-direction:column;gap:8px;">
+
+      <div style="display:flex;align-items:center;gap:12px;background:#162840;border:1.5px solid ${selectedShipping==='canada_post'?'#2f80ed':'#1e3a5f'};border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color 0.2s;" onclick="selectShipping('canada_post')">
+        ${dot(selectedShipping==='canada_post')}
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:0.9rem;">🇨🇦 Canada Post</div>
+          <div style="font-size:0.75rem;color:#7a9bbf;margin-top:2px;">Standard delivery to your address</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          ${freeShipping
+            ? '<div style="font-weight:800;font-size:0.88rem;color:#22c55e;">FREE</div><div style="font-size:0.7rem;color:#22c55e;">Orders $60+</div>'
+            : `<div style="font-weight:700;font-size:0.9rem;">$${cpCost.toFixed(2)}</div><div style="font-size:0.7rem;color:#7a9bbf;">+free over $60</div>`}
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;background:#162840;border:1.5px solid ${selectedShipping==='pickup'?'#2f80ed':'#1e3a5f'};border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color 0.2s;" onclick="selectShipping('pickup')">
+        ${dot(selectedShipping==='pickup')}
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:0.9rem;">📍 Pickup — Moncton, NB</div>
+          <div style="font-size:0.75rem;color:#7a9bbf;margin-top:2px;">Pick up at our Moncton location</div>
+        </div>
+        <div style="font-weight:800;font-size:0.88rem;color:#22c55e;flex-shrink:0;">FREE</div>
+      </div>
+
+    </div>`;
+}
+
+function selectShipping(method) {
+  selectedShipping = method;
+  renderShippingOptions();
+  updateCheckoutTotals();
+}
+
+function updateCheckoutTotals() {
+  const subtotal = cartTotal();
+  const shipping = getShippingCost(selectedShipping, subtotal);
+  const total = subtotal + shipping;
+
+  const totalLine = document.getElementById('checkout-total-line');
+  if (totalLine) {
+    const shipLabel = selectedShipping === 'canada_post'
+      ? (shipping === 0 ? '🇨🇦 Canada Post <span style="color:#22c55e;font-size:0.75rem;">(Free over $60)</span>' : '🇨🇦 Canada Post')
+      : selectedShipping === 'pickup' ? '📍 Pickup — Moncton' : null;
+    totalLine.innerHTML = `
+      <div style="border-top:1px solid #1e3a5f;padding-top:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:#7a9bbf;padding:3px 0;">
+          <span>Subtotal</span><span>$${subtotal.toFixed(2)}</span>
+        </div>
+        ${shipLabel
+          ? `<div style="display:flex;justify-content:space-between;font-size:0.82rem;padding:3px 0;color:${shipping===0?'#22c55e':'#e2eaf4'};">
+               <span>${shipLabel}</span>
+               <span>${shipping === 0 ? 'FREE' : '$'+shipping.toFixed(2)}</span>
+             </div>`
+          : `<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:#7a9bbf;padding:3px 0;">
+               <span>Shipping</span><span style="color:#f59e0b;">← Select method above</span>
+             </div>`}
+        <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:800;padding-top:8px;border-top:1px solid #1e3a5f;margin-top:4px;">
+          <span>Total</span>
+          <span style="color:#2f80ed;">$${total.toFixed(2)} CAD</span>
+        </div>
+      </div>`;
+  }
+
+  const payLabel = document.getElementById('stripe-pay-label');
+  if (payLabel) payLabel.textContent = `Pay $${total.toFixed(2)} CAD`;
 }
 
 async function submitStripePayment() {
@@ -398,6 +478,11 @@ async function submitStripePayment() {
     document.getElementById('stripe-postal')?.focus();
     return;
   }
+  if (!selectedShipping) {
+    if (errEl) errEl.textContent = 'Please select a delivery method above.';
+    document.getElementById('stripe-shipping')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
   if (!stripeCard) return;
 
   const resetBtn = () => {
@@ -413,11 +498,11 @@ async function submitStripePayment() {
   const stripe = getStripe();
 
   try {
-    // Step 1 — Ask backend to create a PaymentIntent (server calculates total)
+    // Step 1 — Ask backend to create a PaymentIntent (server calculates total + shipping)
     const intentRes = await fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cart, email, name, postal })
+      body: JSON.stringify({ cart, email, name, postal, shippingMethod: selectedShipping })
     });
 
     const intentData = await intentRes.json();
@@ -457,7 +542,9 @@ async function submitStripePayment() {
             email,
             name,
             postal,
-            total: paymentIntent.amount / 100
+            total:          paymentIntent.amount / 100,
+            shippingMethod: selectedShipping,
+            shippingCost:   intentData.shippingCost || 0
           })
         });
         const confirmData = await confirmRes.json();
@@ -475,6 +562,8 @@ async function submitStripePayment() {
 
       if (form) form.style.display = 'none';
       if (summaryEl) summaryEl.style.display = 'none';
+      const shippingEl = document.getElementById('stripe-shipping');
+      if (shippingEl) shippingEl.style.display = 'none';
       if (success) success.style.display = 'block';
       if (confirmEmail) confirmEmail.textContent = email;
       if (pmId) pmId.innerHTML = `
@@ -482,6 +571,7 @@ async function submitStripePayment() {
         ${orderNumber ? `<span style="color:#7a9bbf;">Order Number:</span> <strong style="color:#e2eaf4;">${orderNumber}</strong><br>` : ''}
         <span style="color:#7a9bbf;">Amount:</span> $${(paymentIntent.amount / 100).toFixed(2)} CAD<br>
         <span style="color:#7a9bbf;font-size:0.85em;margin-top:6px;display:block;">A confirmation email has been sent to ${email}</span>
+        <span style="color:#f59e0b;font-size:0.82em;margin-top:8px;display:block;">📬 Don't see it? Check your <strong>junk or spam folder</strong> — it sometimes lands there.</span>
       `;
     }
 
@@ -579,5 +669,6 @@ window.updateQty = updateQty;
 window.openCart = openCart;
 window.closeCart = closeCart;
 window.proceedToCheckout = proceedToCheckout;
+window.selectShipping = selectShipping;
 window.closeCheckout = closeCheckout;
 window.submitStripePayment = submitStripePayment;

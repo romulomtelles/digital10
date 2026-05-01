@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | Digital10</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180x180.png">
+  <meta name="description" content="Digital10 Privacy Policy — how we collect, use, and protect your personal information.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .privacy-hero {
+      padding: 120px 28px 48px;
+      text-align: center;
+    }
+    .privacy-hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .privacy-hero p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+    .privacy-updated {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 5px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .privacy-body {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 28px 80px;
+    }
+
+    .privacy-toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 36px;
+    }
+    .privacy-toc h4 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .privacy-toc ol {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .privacy-toc ol li a {
+      color: var(--blue);
+      text-decoration: none;
+      font-size: 0.88rem;
+    }
+    .privacy-toc ol li a:hover { text-decoration: underline; }
+
+    .privacy-section {
+      margin-bottom: 36px;
+      scroll-margin-top: 90px;
+    }
+    .privacy-section h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .privacy-section p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+    .privacy-section p:last-child { margin-bottom: 0; }
+    .privacy-section ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .privacy-section ul li {
+      font-size: 0.9rem;
+      color: var(--muted);
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.55;
+    }
+    .privacy-section ul li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .privacy-section ul li strong { color: var(--text); }
+
+    .privacy-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+    }
+    .privacy-table th {
+      text-align: left;
+      padding: 9px 14px;
+      background: var(--bg2);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+    .privacy-table td {
+      padding: 10px 14px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .privacy-table td strong { color: var(--text); }
+    .privacy-table tr:last-child td { border-bottom: none; }
+    .privacy-table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .privacy-contact {
+      margin-top: 12px;
+      padding: 20px 24px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .privacy-contact a { color: var(--blue); text-decoration: none; }
+    .privacy-contact a:hover { text-decoration: underline; }
+    .privacy-contact strong { color: var(--text); }
+
+    @media (max-width: 640px) {
+      .privacy-hero { padding: 100px 20px 36px; }
+      .privacy-body { padding: 0 16px 60px; }
+      .privacy-table th, .privacy-table td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────── -->
+<header class="nav-header">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10">
+    </a>
+    <nav class="nav-links">
+      <a href="hosting.html">Hosting</a>
+      <a href="esim.html">eSIM</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="hosting.html">🌐 Hosting</a>
+    <a href="esim.html">📶 eSIM</a>
+    <a href="shop.html">⚡ Electronics</a>
+    <a href="coding-robotics.html">🤖 Coding & Robotics</a>
+  </nav>
+</header>
+
+<!-- ── HERO ───────────────────────────────────────── -->
+<section class="privacy-hero">
+  <h1>Privacy Policy</h1>
+  <p>We collect only what we need to run your order, and we never sell your data. Here's exactly what we do with your information.</p>
+  <span class="privacy-updated">Last updated: May 2026 · Governed by PIPEDA (Canada)</span>
+</section>
+
+<!-- ── CONTENT ────────────────────────────────────── -->
+<div class="privacy-body">
+
+  <!-- Table of contents -->
+  <div class="privacy-toc">
+    <h4>Contents</h4>
+    <ol>
+      <li><a href="#who">Who we are</a></li>
+      <li><a href="#collect">What information we collect</a></li>
+      <li><a href="#use">How we use your information</a></li>
+      <li><a href="#third-parties">Third parties we share data with</a></li>
+      <li><a href="#retention">How long we keep your data</a></li>
+      <li><a href="#rights">Your rights</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#contact">Contact us</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. Who we are -->
+  <div class="privacy-section" id="who">
+    <h2>1 · Who we are</h2>
+    <p>Digital10 is a Canadian business based in <strong>Moncton, New Brunswick</strong>, operating at <strong>digital10.ca</strong>. We sell web hosting plans, global eSIM data plans, and electronics components.</p>
+    <p>Digital10 is the data controller responsible for the personal information collected through this website. Questions about this policy can be directed to <a href="mailto:info@digital10.ca" style="color:var(--blue)">info@digital10.ca</a>.</p>
+  </div>
+
+  <!-- 2. What we collect -->
+  <div class="privacy-section" id="collect">
+    <h2>2 · What information we collect</h2>
+    <p>We collect information only when you make a purchase or contact us. We do not use tracking cookies, analytics platforms, or advertising pixels.</p>
+    <div class="privacy-table-wrap">
+      <table class="privacy-table">
+        <thead>
+          <tr>
+            <th>Information</th>
+            <th>Why it's collected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Full name</strong></td>
+            <td>To address your order and any correspondence</td>
+          </tr>
+          <tr>
+            <td><strong>Email address</strong></td>
+            <td>To deliver your eSIM QR code, order confirmation, and support replies</td>
+          </tr>
+          <tr>
+            <td><strong>Postal / ZIP code &amp; country</strong></td>
+            <td>For payment fraud prevention (passed to Stripe)</td>
+          </tr>
+          <tr>
+            <td><strong>Payment details</strong></td>
+            <td>Processed directly by Stripe — Digital10 never sees or stores your card number</td>
+          </tr>
+          <tr>
+            <td><strong>Order details</strong></td>
+            <td>Product purchased, amount, date, and order number — kept for business and tax records</td>
+          </tr>
+          <tr>
+            <td><strong>Shipping address</strong></td>
+            <td>Electronics orders only — required to ship your item</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. How we use it -->
+  <div class="privacy-section" id="use">
+    <h2>3 · How we use your information</h2>
+    <ul>
+      <li><strong>Fulfilling your order</strong> — sending your eSIM QR code, shipping your electronics, or activating your hosting plan.</li>
+      <li><strong>Order confirmation emails</strong> — a receipt is sent automatically after each successful payment.</li>
+      <li><strong>Customer support</strong> — if you contact us, we use your information to help resolve your issue.</li>
+      <li><strong>Legal and tax obligations</strong> — Canadian tax law requires us to retain transaction records.</li>
+    </ul>
+    <p>We do <strong>not</strong> use your information for marketing emails, targeted advertising, or sell it to any third party.</p>
+  </div>
+
+  <!-- 4. Third parties -->
+  <div class="privacy-section" id="third-parties">
+    <h2>4 · Third parties we share data with</h2>
+    <p>We share the minimum necessary data with trusted service providers to operate the business. We do not sell your data.</p>
+    <div class="privacy-table-wrap">
+      <table class="privacy-table">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Purpose</th>
+            <th>Data shared</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Stripe</strong> (stripe.com)</td>
+            <td>Payment processing</td>
+            <td>Name, email, postal code, country, payment card details</td>
+          </tr>
+          <tr>
+            <td><strong>eSIM Access</strong> (esimaccess.com)</td>
+            <td>eSIM plan provisioning and QR code generation</td>
+            <td>Name, email, and the plan you purchased</td>
+          </tr>
+          <tr>
+            <td><strong>Resend</strong> (resend.com)</td>
+            <td>Transactional email delivery (order confirmations, QR codes)</td>
+            <td>Name and email address</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Each of these providers has their own privacy policy and is responsible for the data they hold. We encourage you to review them if you have concerns.</p>
+  </div>
+
+  <!-- 5. Retention -->
+  <div class="privacy-section" id="retention">
+    <h2>5 · How long we keep your data</h2>
+    <ul>
+      <li><strong>Order records</strong> (name, email, product, amount) are retained for <strong>7 years</strong> to comply with Canada Revenue Agency record-keeping requirements.</li>
+      <li><strong>Support correspondence</strong> is kept for as long as reasonably necessary to resolve the matter, then deleted.</li>
+      <li>We do not retain payment card details — these are held solely by Stripe.</li>
+    </ul>
+  </div>
+
+  <!-- 6. Rights -->
+  <div class="privacy-section" id="rights">
+    <h2>6 · Your rights</h2>
+    <p>Under Canada's Personal Information Protection and Electronic Documents Act (PIPEDA), you have the right to:</p>
+    <ul>
+      <li><strong>Access</strong> the personal information we hold about you.</li>
+      <li><strong>Correct</strong> inaccurate information in your records.</li>
+      <li><strong>Withdraw consent</strong> for uses beyond what is legally required to process your order (note: withdrawing consent may limit our ability to provide service).</li>
+      <li><strong>Request deletion</strong> of personal data we hold, subject to our legal retention obligations.</li>
+    </ul>
+    <p>To exercise any of these rights, email <a href="mailto:info@digital10.ca" style="color:var(--blue)">info@digital10.ca</a>. We will respond within 30 days.</p>
+  </div>
+
+  <!-- 7. Security -->
+  <div class="privacy-section" id="security">
+    <h2>7 · Security</h2>
+    <p>All data is transmitted over HTTPS. Payment processing is handled entirely by Stripe, a PCI-DSS Level 1 certified provider — Digital10 never handles raw card data.</p>
+    <p>Order data is stored on a private server with access restricted to Digital10 personnel. While we take reasonable precautions, no method of internet transmission is 100% secure. If you have security concerns, contact us at <a href="mailto:info@digital10.ca" style="color:var(--blue)">info@digital10.ca</a>.</p>
+  </div>
+
+  <!-- 8. Contact -->
+  <div class="privacy-section" id="contact">
+    <h2>8 · Contact us</h2>
+    <div class="privacy-contact">
+      <strong>Digital10</strong><br>
+      Moncton, New Brunswick, Canada<br>
+      <a href="mailto:info@digital10.ca">info@digital10.ca</a><br><br>
+      If you have a privacy concern or complaint, you may also contact the <strong>Office of the Privacy Commissioner of Canada</strong> at <a href="https://www.priv.gc.ca" target="_blank" rel="noopener">priv.gc.ca</a>.
+    </div>
+  </div>
+
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="images/logo/logo_principal_semfundo_versao1-1536x922.png" alt="Digital10" class="footer-logo">
+      <p>Hosting, eSIM, and electronics in Canada.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="hosting.html">Web Hosting</a>
+      <a href="esim.html">eSIM Plans</a>
+      <a href="shop.html">Electronics</a>
+      <a href="coding-robotics.html">Coding & Robotics</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="policy.html">Policies &amp; Terms</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <a href="mailto:info@digital10.ca">info@digital10.ca</a>
+    </div>
+  </div>
+  <div class="footer-bottom"><p>© 2026 Digital10. All rights reserved.</p></div>
+</footer>
+
+<script>
+document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+  document.getElementById('mobile-nav')?.classList.toggle('open');
+});
+</script>
+</body>
+</html>
